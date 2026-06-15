@@ -1,0 +1,218 @@
+﻿@model IEnumerable<G2_SC603_KN_Proyecto.Models.ClienteMembresiaResumen>
+@{
+    Layout = "_Layout";
+    string rolActual = Context.Session.GetString("Rol") ?? string.Empty;
+}
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="toast show" style="background:#201f1f; color:#4ade80;">
+        <span class="material-symbols-outlined">check_circle</span>
+        <span>@TempData["SuccessMessage"]</span>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="toast show" style="background:#201f1f; color:#ffb4ab;">
+        <span class="material-symbols-outlined">error</span>
+        <span>@TempData["ErrorMessage"]</span>
+    </div>
+}
+
+<div id="page-memberships" class="section-page active p-6 lg:p-8">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <div>
+            <h2 class="font-headline text-3xl font-bold tracking-tight">Gestión de Membresías</h2>
+            <p class="text-on-surface-variant text-xs mt-1">RMGM-01-002, RMGM-01-006 al RMGM-01-008</p>
+        </div>
+        <div class="relative flex-[2]">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">search</span>
+            <input type="text" id="membresiaSearch" placeholder="Buscar membresia o cliente..."
+                   class="input-field text-sm pl-10 w-full"
+                   oninput="filterMembresia()" />
+        </div>
+        <select class="input-field text-sm flex-[1]" id="membresiaStatusFilter" onchange="filterMembresia()">
+            <option value="">Todos los estados</option>
+            <option value="Activa">Activa</option>
+            <option value="Vencida">Vencida</option>
+            <option value="Suspendida">Suspendida</option>
+        </select>
+        @if (rolActual == "ADMIN" || rolActual == "RECEPTION")
+        {
+            <button class="btn-primary py-2.5 text-sm" onclick="openModal('membershipModal')">
+                <span class="material-symbols-outlined text-[18px]">add</span> Nueva Membresía
+            </button>
+        }
+    </div>
+
+    <div class="bg-surface-container rounded-2xl overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.3)]">
+        <div class="overflow-x-auto">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Tipo de Plan</th>
+                        <th>Inicio</th>
+                        <th>Vencimiento</th>
+                        <th>Monto</th>
+                        <th>Estado</th>
+                        <th class="text-right">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="membershipsTableBody">
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (ClienteMembresiaResumen cliente in Model)
+                        {
+                            <tr>
+                                <td>@cliente.Cliente</td>
+                                <td>@cliente.TipoPlan</td>
+                                <td>@cliente.FechaInicio?.ToString("dd/MM/yyyy")</td>
+                                <td>@cliente.FechaFin?.ToString("dd/MM/yyyy")</td>
+                                <td>@cliente.Precio?.ToString("N2")</td>
+                                <td>@cliente.Estado</td>
+                                <td class="flex gap-2 items-center justify-end">
+
+                                    @if (rolActual == "ADMIN" || rolActual == "RECEPTION")
+                                    {
+                                        <!-- Editar -->
+                                        <button class="btn-secondary text-xs py-1 px-2"
+                                                onclick="openEditModalMembresia(this)"
+                                                data-idcliente="@cliente.IdCliente"
+                                                data-idmembresia="@cliente.IdMembresia"
+                                                data-nombre="@cliente.Cliente"
+                                                data-fechainicio="@cliente.FechaInicio?.ToString("yyyy-MM-dd")"
+                                                data-fechafin="@cliente.FechaFin?.ToString("yyyy-MM-dd")"
+                                                data-estado="@cliente.Estado">
+                                            Editar
+                                        </button>
+                                    }
+
+                                   
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center text-outline">
+                                No hay datos disponibles
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ===================== MODAL AGREGAR MEMBRESÏA ===================== -->
+<div class="modal-overlay" id="membershipModal">
+    <div class="modal-box">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="font-headline font-bold text-xl" id="membershipModalTitle">Nueva Membresía</h3>
+            <button onclick="closeModal('membershipModal')" class="btn-icon"><span class="material-symbols-outlined">close</span></button>
+        </div>
+           <form asp-action="AgregarMembresia" method="post" id="membershipForm" class="space-y-4">
+            <input type="hidden" id="membershipId" />
+            <div>
+                <label class="label-float">Cliente *</label>
+                <select id="membershipClient" name="IdCliente" class="input-field" required>
+                    @foreach (var cliente_lista in ViewBag.Clientes as List<G2_SC603_KN_Proyecto.Models.Cliente>)
+                    {
+                        <option value="@cliente_lista.IdCliente">@cliente_lista.Nombre</option>
+                    }
+                </select>
+
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="label-float">Tipo de Plan *</label>
+                    <select id="membershipPlan" name="IdMembresia" class="input-field" required>
+                        @foreach (var listamembresias in ViewBag.Membresias as List<G2_SC603_KN_Proyecto.Models.Membresium>)
+                        {
+                            <option value="@listamembresias.IdMembresia">@listamembresias.Nombre - @listamembresias.Precio.ToString("N2")</option>
+                        }
+                    </select>
+                </div>
+                <div>
+                    <label class="label-float">Estado</label>
+                    <select id="membershipStatus" name="Estado" class="input-field">
+                        <option value="Activa">Activa</option>
+                        <option value="Vencida">Vencida</option>
+                        <option value="Suspendida">Suspendida</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="label-float">Fecha de Inicio *</label>
+                    <input type="date" id="membershipStart" name="FechaInicio" class="input-field" required />
+
+                </div>
+                <div>
+                    <label class="label-float">Fecha de Vencimiento *</label>
+                    <input type="date" id="membershipEnd" name="FechaFin" class="input-field" required />
+                </div>
+            </div>
+            <div class="flex gap-3 pt-2 justify-end">
+                <button type="button" class="btn-secondary" onclick="closeModal('membershipModal')">Cancelar</button>
+                <button type="submit" class="btn-primary"><span class="material-symbols-outlined text-[16px]">save</span> Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ===================== MODAL EDITAR MEMBRESIA ===================== -->
+<div class="modal-overlay" id="openEditModalMembresia">
+    <div class="modal-box">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="font-headline font-bold text-xl">Editar Cliente</h3>
+            <button onclick="closeModal('openEditModalMembresia')" class="btn-icon">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <form asp-action="EditarMembresia" method="post" id="editForm" class="space-y-4">
+            <input type="hidden" name="idCliente" id="editIdCliente" />
+            <div class="grid grid-cols-2 gap-4">
+                <div class="col-span-2">
+                    <label class="label-float">Nombre Completo *</label>
+                    <input type="text" name="Nombre" id="editNombre" class="input-field" readonly />
+                </div>
+                <div>
+                    <label class="label-float">Tipo de Plan *</label>
+                    <select id="editMembershipPlan" name="IdMembresia" class="input-field" required>
+                        @foreach (var listamembresias in ViewBag.Membresias as List<G2_SC603_KN_Proyecto.Models.Membresium>)
+                        {
+                            <option value="@listamembresias.IdMembresia">@listamembresias.Nombre - @listamembresias.Precio.ToString("N2")</option>
+                        }
+                    </select>
+                </div>
+                <div>
+                    <label class="label-float">Estado</label>
+                    <select id="editMembershipStatus" name="Estado" class="input-field">
+                        <option value="Activa">Activa</option>
+                        <option value="Vencida">Vencida</option>
+                        <option value="Suspendida">Suspendida</option>
+                    </select>
+                </div>
+            </div>
+                <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="label-float">Fecha de Inicio *</label>
+                    <input type="date" id="editMembershipStart" name="FechaInicio" class="input-field" required />
+                </div>
+
+                <div>
+                <label class="label-float">Fecha de Vencimiento *</label>
+                    <input type="date" id="editMembershipEnd" name="FechaFin" class="input-field" required />
+                    </div>
+                </div>
+            <div class="flex gap-3 pt-2 justify-end">
+                <button type="button" class="btn-secondary" onclick="closeModal('editModal')">Cancelar</button>
+                <button type="submit" class="btn-primary">
+                    <span class="material-symbols-outlined text-[16px]">save</span> Guardar Cambios
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,98 @@
+﻿@{
+    Layout = "_Layout";
+}
+<div id="page-reports" class="section-page active p-6 lg:p-8">
+    <div class="mb-8">
+        <h2 class="font-headline text-3xl font-bold tracking-tight">Reportes y Análisis</h2>
+        <p class="text-on-surface-variant text-xs mt-1">RMGM-DASH-007 al RMGM-DASH-009</p>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-surface-container rounded-2xl p-5 mb-6 shadow-[0_20px_40px_rgba(0,0,0,0.3)]">
+        <h3 class="font-headline font-semibold text-sm mb-4 text-on-surface-variant uppercase tracking-wider">Filtros del Reporte</h3>
+        <div class="flex flex-wrap gap-4 items-end">
+            <div class="flex-1 min-w-36">
+                <label class="label-float">Fecha inicio</label>
+                <input type="date" class="input-field text-sm py-2.5" id="reportStartDate" />
+            </div>
+            <div class="flex-1 min-w-36">
+                <label class="label-float">Fecha fin</label>
+                <input type="date" class="input-field text-sm py-2.5" id="reportEndDate" />
+            </div>
+            <div class="flex-1 min-w-36">
+                <label class="label-float">Tipo de membresía</label>
+                <select class="input-field text-sm py-2.5">
+                    <option value="">Todos</option>
+                    <option>Mensual</option>
+                    <option>Trimestral</option>
+                    <option>Semestral</option>
+                    <option>Anual</option>
+                </select>
+            </div>
+            <div class="flex-1 min-w-36">
+                <label class="label-float">Método de pago</label>
+                <select class="input-field text-sm py-2.5">
+                    <option value="">Todos</option>
+                    <option>Efectivo</option>
+                    <option>SINPE</option>
+                    <option>Tarjeta</option>
+                </select>
+            </div>
+            <div class="flex gap-2">
+                <button class="btn-primary py-2.5 text-sm">
+                    <span class="material-symbols-outlined text-[16px]">filter_list</span> Generar
+                </button>
+                <button class="btn-secondary py-2.5 text-sm" onclick="showToast('Filtros limpiados','info')">Limpiar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Summary Cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="bg-surface-container rounded-2xl p-5">
+            <p class="text-on-surface-variant text-[10px] uppercase tracking-wider font-bold mb-2">Total Ingresos</p>
+            <p class="font-headline text-3xl font-black tracking-tighter">₡1.4M</p>
+        </div>
+        <div class="bg-surface-container rounded-2xl p-5">
+            <p class="text-on-surface-variant text-[10px] uppercase tracking-wider font-bold mb-2">Membresías Activas</p>
+            <p class="font-headline text-3xl font-black tracking-tighter text-primary-container">147</p>
+        </div>
+        <div class="bg-surface-container rounded-2xl p-5">
+            <p class="text-on-surface-variant text-[10px] uppercase tracking-wider font-bold mb-2">Membresías Vencidas</p>
+            <p class="font-headline text-3xl font-black tracking-tighter text-error">23</p>
+        </div>
+        <div class="bg-surface-container rounded-2xl p-5">
+            <p class="text-on-surface-variant text-[10px] uppercase tracking-wider font-bold mb-2">Nuevos Clientes</p>
+            <p class="font-headline text-3xl font-black tracking-tighter text-tertiary-fixed">+18</p>
+        </div>
+    </div>
+
+    <!-- Report Table -->
+    <div class="bg-surface-container rounded-2xl overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.3)]">
+        <div class="p-5 flex items-center justify-between border-b border-outline-variant/10">
+            <h3 class="font-headline font-bold text-base">Detalle de Ingresos</h3>
+            <div class="flex gap-2">
+                <button class="btn-secondary py-2 text-xs flex items-center gap-1" onclick="showToast('Exportando PDF...','success')">
+                    <span class="material-symbols-outlined text-[16px]">picture_as_pdf</span> PDF
+                </button>
+                <button class="btn-secondary py-2 text-xs flex items-center gap-1" onclick="showToast('Exportando Excel...','success')">
+                    <span class="material-symbols-outlined text-[16px]">table_chart</span> Excel
+                </button>
+            </div>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Fecha</th>
+                        <th>Plan</th>
+                        <th>Método</th>
+                        <th class="text-right">Monto</th>
+                    </tr>
+                </thead>
+                <tbody id="reportTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,193 @@
+﻿@model IEnumerable<G2_SC603_KN_Proyecto.Models.UsuarioNombre>
+@{
+    Layout = "_Layout";
+}
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="toast show" style="background:#201f1f; color:#4ade80;">
+        <span class="material-symbols-outlined">check_circle</span>
+        <span>@TempData["SuccessMessage"]</span>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="toast show" style="background:#201f1f; color:#ffb4ab;">
+        <span class="material-symbols-outlined">error</span>
+        <span>@TempData["ErrorMessage"]</span>
+    </div>
+}
+
+<div id="page-clients" class="section-page active p-6 lg:p-8">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <div>
+            <h2 class="font-headline text-3xl font-bold tracking-tight">Gestión de Usuarios</h2>
+            <p class="text-on-surface-variant text-xs mt-1">RMGM-01-001 al RMGM-01-014</p>
+        </div>
+        <div class="flex gap-3 items-center">
+            <div class="relative flex-[2]">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">search</span>
+                <input type="text" id="clientSearch" placeholder="Buscar usuario..."
+                       class="input-field text-sm pl-10 w-full"
+                       oninput="filterUsers()" />
+            </div>
+            <select class="input-field text-sm flex-[1]" id="clientStatusFilter" onchange="filterUsers()">
+                <option value="">Todos los roles</option>
+                <option value="ADMIN">Administrador</option>
+                <option value="USER">Cliente</option>
+                <option value="TRAINER">Entrenador</option>
+                <option value="RECEPTION">Recepcionista</option>
+            </select>
+            <button class="btn-primary text-sm flex items-center gap-1" onclick="openClientModal()">
+                <span class="material-symbols-outlined text-[18px]">add</span> Nuevo User
+            </button>
+        </div>
+
+    </div>
+
+    <div class="bg-surface-container rounded-2xl overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.3)]">
+        <div class="overflow-x-auto max-h-[400px] overflow-y-auto">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Rol</th>
+                        <th>Nombre</th>
+                        <th>Correo</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="clientsTableBody">
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var cliente in Model)
+                        {
+                            <tr>
+                                <td>@cliente.Username</td>
+                                <td>@cliente.Rol</td>
+                                <td>@cliente.Nombre</td>
+                                <td>@cliente.Correo</td>
+                                <td class="flex gap-3 items-center">
+                                    <a href="javascript:void(0)"
+                                       onclick="openEditUserModal('@cliente.Username', '@cliente.Nombre', '@cliente.Correo', '@cliente.Rol', '@cliente.Telefono')"
+                                       class="btn-secondary">Editar</a>
+
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center text-outline">
+                                No hay datos disponibles
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
+        </div>
+        <div class="bg-surface-container-low px-6 py-4 flex items-center justify-between border-t border-outline-variant/10">
+            <span class="text-xs text-outline" id="clientsCount">Mostrando todos los clientes</span>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL AGREGAR INFO-->
+<div class="modal-overlay" id="clientModal">
+    <div class="modal-box">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="font-headline font-bold text-xl" id="clientModalTitle">Nuevo Usuario</h3>
+            <button onclick="closeModal('clientModal')" class="btn-icon"><span class="material-symbols-outlined">close</span></button>
+        </div>
+        <form asp-action="AgregarUsuario" method="post" id="clientForm" class="space-y-4">
+            <input type="hidden" id="clientId" />
+            <div class="grid grid-cols-2 gap-4">
+                <div class="col-span-2">
+                    <label class="label-float">Rol</label>
+                    <select class="input-field" id="clientStatusFilter" name="Rol" required>
+                        <option value="ADMIN">Administrador</option>
+                        <option value="TRAINER">Entrenador</option>
+                        <option value="RECEPTION">Recepcionista</option>
+                    </select>
+                    <label class="label-float">Nombre Completo *</label>
+                    <input type="text" name="Nombre" class="input-field" placeholder="Ej: María González Solís" required />
+                </div>
+                <div>
+                    <label class="label-float">Cédula</label>
+                    <input type="text" name="Username" class="input-field" placeholder="XXXXXXXXX" required />
+                </div>
+                <div>
+                    <label class="label-float">Teléfono *</label>
+                    <input type="tel" name="Telefono" class="input-field" placeholder="8888-8888" required />
+                </div>
+                <div class="col-span-2">
+                    <label class="label-float">Correo Electrónico *</label>
+                    <input type="email" name="Correo" class="input-field" placeholder="correo@ejemplo.com" required />
+                </div>
+            </div>
+            <div class="flex gap-3 pt-2 justify-end">
+                <button type="button" class="btn-secondary" onclick="closeModal('clientModal')">Cancelar</button>
+                <button type="submit" class="btn-primary">
+                    <span class="material-symbols-outlined text-[16px]">save</span> Guardar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL EDITAR USUARIO -->
+<div class="modal-overlay" id="editUserModal">
+    <div class="modal-box">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="font-headline font-bold text-xl">Editar Usuario</h3>
+            <button onclick="closeModal('editUserModal')" class="btn-icon">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+
+        <form asp-action="EditarUsuario" method="post" id="editUserForm" class="space-y-4">
+            <input type="hidden" id="editUserId" name="Username" />
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="col-span-2">
+                    <label class="label-float">Username</label>
+                    <input type="text" id="editUsername" name="Username" class="input-field" readonly />
+                </div>
+
+                <div class="col-span-2">
+                    <label class="label-float">Nombre</label>
+                    <input type="text" id="editNombre" name="Nombre" class="input-field" required />
+                </div>
+
+                <div class="col-span-2">
+                    <label class="label-float">Correo</label>
+                    <input type="email" id="editCorreo" name="Correo" class="input-field" required />
+                </div>
+
+                <div>
+                    <label class="label-float">Teléfono *</label>
+                    <input type="tel" id="editTelefono" name="Telefono" class="input-field" placeholder="8888-8888" required />
+                </div>
+
+                <div class="col-span-2">
+                    <label class="label-float">Rol</label>
+                    <select class="input-field" id="editRol" name="Rol" required>
+                        <option value="ADMIN">Administrador</option>
+                        <option value="USER">Cliente</option>
+                        <option value="TRAINER">Entrenador</option>
+                        <option value="RECEPTION">Recepcionista</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex gap-3 pt-2 justify-end">
+                <button type="button" class="btn-secondary" onclick="closeModal('editUserModal')">Cancelar</button>
+                <button type="submit" class="btn-primary">
+                    <span class="material-symbols-outlined text-[16px]">save</span> Guardar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

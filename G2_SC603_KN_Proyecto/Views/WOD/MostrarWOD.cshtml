@@ -1,0 +1,236 @@
+﻿@model IEnumerable<G2_SC603_KN_Proyecto.Models.EjercicioResumen>
+@{
+    Layout = "_Layout";
+    string rolActual = Context.Session.GetString("Rol") ?? string.Empty;
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="toast show" style="background:#201f1f; color:#4ade80;">
+        <span class="material-symbols-outlined">check_circle</span>
+        <span>@TempData["SuccessMessage"]</span>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="toast show" style="background:#201f1f; color:#ffb4ab;">
+        <span class="material-symbols-outlined">error</span>
+        <span>@TempData["ErrorMessage"]</span>
+    </div>
+}
+
+<div id="page-wod" class="section-page active p-6 lg:p-8">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <div>
+            <h2 class="font-headline text-3xl font-bold tracking-tight">WOD — Workout of the Day</h2>
+            <p class="text-on-surface-variant text-xs mt-1">RMGM-WOD-001 al RMGM-WOD-005</p>
+        </div>
+        @if (rolActual == "ADMIN" || rolActual == "TRAINER")
+        {
+            <button class="btn-primary py-2.5 text-sm" onclick="openWODModal()">
+                <span class="material-symbols-outlined text-[18px]">add</span> Publicar WOD
+            </button>
+        }
+    </div>
+
+    <!-- WOD Cards Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5" id="wodGrid">
+        @{
+            var wods = ViewBag.Wods as List<G2_SC603_KN_Proyecto.Models.WodResumen>;
+            var wodGroups = wods != null && wods.Any()
+            ? wods.GroupBy(w => w.IdRutina).ToList()
+            : null;
+        }
+        @if (wodGroups != null && wodGroups.Any())
+        {
+            foreach (var grupo in wodGroups)
+            {
+                var primeraFila = grupo.First();
+                <div class="bg-surface-container rounded-2xl p-5 shadow-[0_8px_24px_rgba(0,0,0,0.4)]">
+                    <div class="flex items-start justify-between mb-3">
+                        <h3 class="font-headline font-bold text-base">@primeraFila.Nombre</h3>
+                    </div>
+                    @if (!string.IsNullOrEmpty(primeraFila.Objetivo))
+                    {
+                        <p class="text-on-surface-variant text-xs mb-4">@primeraFila.Objetivo</p>
+                    }
+                    <p class="text-xs text-outline mb-3">Coach: @primeraFila.NombreEntrenador</p>
+                    <div class="space-y-2">
+                        @foreach (var ej in grupo.Where(g => g.NombreEjercicio != null))
+                        {
+                            <div class="flex items-center justify-between bg-surface-container-high rounded-lg px-3 py-2">
+                                <span class="text-sm">@ej.NombreEjercicio</span>
+                                <span class="text-xs text-outline">@ej.Series×@ej.Repeticiones | @ej.Descanso s</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <p class="text-on-surface-variant text-sm col-span-3">No hay WODs publicados aún.</p>
+        }
+    </div>
+</div>
+
+<!-- ===================== MODAL PUBLICAR WOD ===================== -->
+<div class="modal-overlay" id="wodModal">
+    <div class="modal-box" style="max-width:640px">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="font-headline font-bold text-xl">Publicar WOD</h3>
+            <button onclick="closeModal('wodModal')" class="btn-icon">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+
+        <form asp-action="AgregarWOD" method="post" id="wodForm" class="space-y-4" onsubmit="prepareWodSubmit(event)">
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="col-span-2">
+                    <label class="label-float">Nombre del Entrenamiento *</label>
+                    <input type="text" name="nombre" id="wodNombre" class="input-field"
+                           placeholder="Ej: AMRAP 20 — Fuerza y Cardio" required />
+                </div>
+                <div class="col-span-2">
+                    <label class="label-float">Objetivo / Notas del Coach</label>
+                    <textarea name="objetivo" id="wodObjetivo" class="input-field" rows="2"
+                              placeholder="Instrucciones, tips, observaciones..."></textarea>
+                </div>
+            </div>
+
+            <!-- Hidden field que se llena con JSON antes de enviar -->
+            <input type="hidden" name="ejerciciosJson" id="ejerciciosJson" />
+
+            <div>
+                <div class="flex items-center justify-between mb-3">
+                    <label class="label-float mb-0">Ejercicios *</label>
+                    <button type="button"
+                            class="text-primary-container text-xs font-semibold flex items-center gap-1 hover:text-primary transition-colors"
+                            onclick="agregarFilaEjercicio()">
+                        <span class="material-symbols-outlined text-[16px]">add</span> Agregar ejercicio
+                    </button>
+                </div>
+                <div id="exerciseList" class="space-y-2"></div>
+                <p id="errorEjercicios" class="text-error text-xs mt-1 hidden">Debe agregar al menos un ejercicio.</p>
+            </div>
+
+            <div class="flex gap-3 pt-2 justify-end">
+                <button type="button" class="btn-secondary" onclick="closeModal('wodModal')">Cancelar</button>
+                <button type="submit" class="btn-primary">
+                    <span class="material-symbols-outlined text-[16px]">publish</span> Publicar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Lista de ejercicios disponibles desde el servidor
+    const ejerciciosDisponibles = [
+        @foreach (var ej in Model ?? Enumerable.Empty<G2_SC603_KN_Proyecto.Models.EjercicioResumen>())
+        {
+                    @Html.Raw("{ id: " + ej.IdEjercicio + ", nombre: '" + ej.Nombre.Replace("'", "\\'") + "' },")
+        }
+    ];
+
+    // ---- ABRIR MODAL WOD ----
+    function openWODModal() {
+        document.getElementById('exerciseList').innerHTML = '';
+        document.getElementById('wodNombre').value = '';
+        document.getElementById('wodObjetivo').value = '';
+        document.getElementById('errorEjercicios').classList.add('hidden');
+        agregarFilaEjercicio();
+        document.getElementById('wodModal').classList.add('active');
+    }
+
+    // ---- AGREGAR FILA DE EJERCICIO ----
+    function agregarFilaEjercicio() {
+        const lista = document.getElementById('exerciseList');
+        const indice = lista.children.length;
+
+        const fila = document.createElement('div');
+        fila.className = 'grid grid-cols-12 gap-2 items-center';
+        fila.dataset.index = indice;
+
+        // Construir opciones del select
+        let opcionesHtml = '<option value="">Seleccionar...</option>';
+        ejerciciosDisponibles.forEach(function (ej) {
+            opcionesHtml += '<option value="' + ej.id + '">' + ej.nombre + '</option>';
+        });
+
+        fila.innerHTML =
+            '<div class="col-span-5">' +
+                '<select class="input-field text-sm ej-id" required>' + opcionesHtml + '</select>' +
+            '</div>' +
+            '<div class="col-span-2">' +
+                '<input type="number" class="input-field text-sm ej-series" placeholder="Series" min="1" required />' +
+            '</div>' +
+            '<div class="col-span-2">' +
+                '<input type="number" class="input-field text-sm ej-reps" placeholder="Reps" min="1" required />' +
+            '</div>' +
+            '<div class="col-span-2">' +
+                '<input type="number" class="input-field text-sm ej-descanso" placeholder="Desc(s)" min="0" />' +
+            '</div>' +
+            '<div class="col-span-1 flex justify-center">' +
+                '<button type="button" class="btn-icon" onclick="eliminarFila(this)">' +
+                    '<span class="material-symbols-outlined text-[18px] text-error">delete</span>' +
+                '</button>' +
+            '</div>';
+
+        lista.appendChild(fila);
+    }
+
+    // ---- ELIMINAR FILA DE EJERCICIO ----
+    function eliminarFila(btn) {
+        btn.closest('div[data-index]').remove();
+    }
+
+    // ---- PREPARAR JSON Y VALIDAR ANTES DE ENVIAR ----
+    function prepareWodSubmit(evento) {
+        const filas = document.querySelectorAll('#exerciseList div[data-index]');
+
+        if (filas.length === 0) {
+            evento.preventDefault();
+            document.getElementById('errorEjercicios').classList.remove('hidden');
+            return;
+        }
+
+        const ejercicios = [];
+        let valido = true;
+
+        filas.forEach(function (fila) {
+            const idEjercicio  = parseInt(fila.querySelector('.ej-id').value);
+            const series       = parseInt(fila.querySelector('.ej-series').value);
+            const repeticiones = parseInt(fila.querySelector('.ej-reps').value);
+            const descanso     = parseInt(fila.querySelector('.ej-descanso').value) || 0;
+
+            if (!idEjercicio || !series || !repeticiones) {
+                valido = false;
+                return;
+            }
+
+            ejercicios.push({
+                IdEjercicio:  idEjercicio,
+                Series:       series,
+                Repeticiones: repeticiones,
+                Descanso:     descanso
+            });
+        });
+
+        if (!valido || ejercicios.length === 0) {
+            evento.preventDefault();
+            document.getElementById('errorEjercicios').classList.remove('hidden');
+            return;
+        }
+
+        document.getElementById('errorEjercicios').classList.add('hidden');
+        document.getElementById('ejerciciosJson').value = JSON.stringify(ejercicios);
+    }
+
+    // ---- CERRAR MODAL ----
+    function closeModal(modalId) {
+        document.getElementById(modalId).classList.remove('active');
+    }
+</script>

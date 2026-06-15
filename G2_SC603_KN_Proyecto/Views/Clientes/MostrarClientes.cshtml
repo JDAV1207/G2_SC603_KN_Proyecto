@@ -1,0 +1,382 @@
+﻿@model IEnumerable<G2_SC603_KN_Proyecto.Models.ClienteResumen>
+@{
+    Layout = "_Layout";
+    string rolActual = Context.Session.GetString("Rol") ?? string.Empty;
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="toast show" style="background:#201f1f; color:#4ade80;">
+        <span class="material-symbols-outlined">check_circle</span>
+        <span>@TempData["SuccessMessage"]</span>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="toast show" style="background:#201f1f; color:#ffb4ab;">
+        <span class="material-symbols-outlined">error</span>
+        <span>@TempData["ErrorMessage"]</span>
+    </div>
+}
+
+<div id="page-clients" class="section-page active p-6 lg:p-8">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <div>
+            <h2 class="font-headline text-3xl font-bold tracking-tight">Gestión de Clientes</h2>
+            <p class="text-on-surface-variant text-xs mt-1">RMGM-01-001 al RMGM-01-014</p>
+        </div>
+        <div class="flex gap-3 items-center">
+            <div class="relative flex-[2]">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">search</span>
+                <input type="text" id="clientSearch" placeholder="Buscar cliente..."
+                       class="input-field text-sm pl-10 w-full"
+                       oninput="filterClients()" />
+            </div>
+            <select class="input-field text-sm flex-[1]" id="clientStatusFilter" onchange="filterClients()">
+                <option value="">Todos los estados</option>
+                <option value="Activo">Activo</option>
+                <option value="Inactivo">Inactivo</option>
+                <option value="Suspendido">Suspendido</option>
+            </select>
+            @if (rolActual == "ADMIN" || rolActual == "RECEPTION")
+            {
+                <button class="btn-primary text-sm flex items-center gap-1" onclick="openClientModal()">
+                    <span class="material-symbols-outlined text-[18px]">add</span> Nuevo Cliente
+                </button>
+            }
+        </div>
+    </div>
+
+    <div class="bg-surface-container rounded-2xl overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.3)]">
+        <div class="overflow-x-auto max-h-[400px] overflow-y-auto">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Cédula</th>
+                        <th>Teléfono</th>
+                        <th>Correo</th>
+                        <th>Fecha Nacimiento</th>
+                        <th>Estado</th>
+                        <th class="text-right">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="clientsTableBody">
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (ClienteResumen cliente in Model)
+                        {
+                            <tr>
+                                <td>@cliente.Nombre</td>
+                                <td>@cliente.Cedula</td>
+                                <td>@cliente.Telefono</td>
+                                <td>@cliente.Correo</td>
+                                <td>@cliente.fecha_nacimiento?.ToString("dd/MM/yyyy")</td>
+                                <td>@cliente.Estado</td>
+                                <td class="flex gap-2 items-center justify-end">
+
+                                    <!-- Ver detalles -->
+                                    <button class="btn-primary text-xs py-1 px-2"
+                                            onclick="openDetailsModal(this)"
+                                            data-nombre="@cliente.Nombre"
+                                            data-cedula="@cliente.Cedula"
+                                            data-telefono="@cliente.Telefono"
+                                            data-correo="@cliente.Correo"
+                                            data-fecha="@cliente.fecha_nacimiento?.ToString("dd/MM/yyyy")"
+                                            data-estado="@cliente.Estado"
+                                            data-membresia="@cliente.EstadoMembresia"
+                                            data-vencimiento="@cliente.Vencimiento?.ToString("dd/MM/yyyy")">
+                                        Ver
+                                    </button>
+
+                                    @if (rolActual == "ADMIN" || rolActual == "RECEPTION")
+                                    {
+                                        <!-- Editar -->
+                                        <button class="btn-secondary text-xs py-1 px-2"
+                                                onclick="openEditModal(this)"
+                                                data-id="@cliente.id_cliente"
+                                                data-nombre="@cliente.Nombre"
+                                                data-cedula="@cliente.Cedula"
+                                                data-telefono="@cliente.Telefono"
+                                                data-correo="@cliente.Correo"
+                                                data-fecha="@cliente.fecha_nacimiento?.ToString("yyyy-MM-dd")"
+                                                data-estado="@cliente.Estado">
+                                            Editar
+                                        </button>
+                                    }
+
+                                    @if (rolActual == "ADMIN" && cliente.Estado == "Inactivo")
+                                    {
+                                        <!-- Eliminar solo si es Inactivo -->
+                                        <form asp-action="EliminarCliente" method="post" id="formEliminar_@cliente.id_cliente">
+                                            <input type="hidden" name="idCliente" value="@cliente.id_cliente" />
+                                            <button type="button" class="btn-danger text-xs py-1 px-2"
+                                                    onclick="confirmarEliminacion(@cliente.id_cliente, '@cliente.Nombre')">
+                                                Eliminar
+                                            </button>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center text-outline">
+                                No hay datos disponibles
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="bg-surface-container-low px-6 py-4 flex items-center justify-between border-t border-outline-variant/10">
+            <span class="text-xs text-outline" id="clientsCount">Mostrando todos los clientes</span>
+        </div>
+    </div>
+</div>
+
+<!-- ===================== MODAL VER DETALLES ===================== -->
+<div class="modal-overlay" id="detailsModal">
+    <div class="modal-box">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="font-headline font-bold text-xl">Detalles del Cliente</h3>
+            <button onclick="closeModal('detailsModal')" class="btn-icon">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+            <div class="col-span-2">
+                <label class="label-float">Nombre Completo</label>
+                <input type="text" id="detalleNombre" class="input-field" readonly />
+            </div>
+            <div>
+                <label class="label-float">Cédula</label>
+                <input type="text" id="detalleCedula" class="input-field" readonly />
+            </div>
+            <div>
+                <label class="label-float">Teléfono</label>
+                <input type="text" id="detalleTelefono" class="input-field" readonly />
+            </div>
+            <div class="col-span-2">
+                <label class="label-float">Correo Electrónico</label>
+                <input type="email" id="detalleCorreo" class="input-field" readonly />
+            </div>
+            <div>
+                <label class="label-float">Fecha Nacimiento</label>
+                <input type="text" id="detalleFecha" class="input-field" readonly />
+            </div>
+            <div>
+                <label class="label-float">Estado</label>
+                <input type="text" id="detalleEstado" class="input-field" readonly />
+            </div>
+            <div class="grid grid-cols-2 gap-4 col-span-2">
+                <div>
+                    <label class="label-float">Estado Membresía</label>
+                    <input type="text" id="detalleMembresia" class="input-field" readonly />
+                </div>
+                <div>
+                    <label class="label-float">Vencimiento</label>
+                    <input type="text" id="detalleVencimiento" class="input-field" readonly />
+                </div>
+            </div>
+        </div>
+        <div class="flex justify-end pt-4">
+            <button class="btn-secondary" onclick="closeModal('detailsModal')">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===================== MODAL AGREGAR CLIENTE ===================== -->
+<div class="modal-overlay" id="clientModal">
+    <div class="modal-box">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="font-headline font-bold text-xl">Nuevo Cliente</h3>
+            <button onclick="closeModal('clientModal')" class="btn-icon">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <form asp-action="AgregarCliente" method="post" id="clientForm" class="space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="col-span-2">
+                    <label class="label-float">Nombre Completo *</label>
+                    <input type="text" name="Nombre" class="input-field" placeholder="Ej: María González Solís" required />
+                </div>
+                <div>
+                    <label class="label-float">Cédula / Identificación *</label>
+                    <input type="text" name="Cedula" class="input-field" placeholder="XXXXXXXXX" required />
+                </div>
+                <div>
+                    <label class="label-float">Teléfono *</label>
+                    <input type="tel" name="Telefono" class="input-field" placeholder="8888-8888" required />
+                </div>
+                <div class="col-span-2">
+                    <label class="label-float">Correo Electrónico *</label>
+                    <input type="email" name="Correo" class="input-field" placeholder="correo@ejemplo.com" required />
+                </div>
+                <div>
+                    <label class="label-float">Fecha de Nacimiento</label>
+                    <input type="date" name="fecha_nacimiento" class="input-field" required />
+                </div>
+                <div>
+                    <label class="label-float">Estado</label>
+                    <select name="Estado" class="input-field">
+                        <option value="Activo">Activo</option>
+                        <option value="Inactivo">Inactivo</option>
+                        <option value="Suspendido">Suspendido</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex gap-3 pt-2 justify-end">
+                <button type="button" class="btn-secondary" onclick="closeModal('clientModal')">Cancelar</button>
+                <button type="submit" class="btn-primary">
+                    <span class="material-symbols-outlined text-[16px]">save</span> Guardar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ===================== MODAL EDITAR CLIENTE ===================== -->
+<div class="modal-overlay" id="editModal">
+    <div class="modal-box">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="font-headline font-bold text-xl">Editar Cliente</h3>
+            <button onclick="closeModal('editModal')" class="btn-icon">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <form asp-action="EditarCliente" method="post" id="editForm" class="space-y-4">
+            <input type="hidden" name="id_cliente" id="editIdCliente" />
+            <div class="grid grid-cols-2 gap-4">
+                <div class="col-span-2">
+                    <label class="label-float">Nombre Completo *</label>
+                    <input type="text" name="Nombre" id="editNombre" class="input-field" required />
+                </div>
+                <div>
+                    <label class="label-float">Cédula / Identificación *</label>
+                    <input type="text" name="Cedula" id="editCedula" class="input-field" required />
+                </div>
+                <div>
+                    <label class="label-float">Teléfono</label>
+                    <input type="tel" name="Telefono" id="editTelefono" class="input-field" />
+                </div>
+                <div class="col-span-2">
+                    <label class="label-float">Correo Electrónico</label>
+                    <input type="email" name="Correo" id="editCorreo" class="input-field" />
+                </div>
+                <div>
+                    <label class="label-float">Fecha de Nacimiento</label>
+                    <input type="date" name="fecha_nacimiento" id="editFecha" class="input-field" />
+                </div>
+                <div>
+                    <label class="label-float">Estado</label>
+                    <select name="Estado" id="editEstado" class="input-field">
+                        <option value="Activo">Activo</option>
+                        <option value="Inactivo">Inactivo</option>
+                        <option value="Suspendido">Suspendido</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex gap-3 pt-2 justify-end">
+                <button type="button" class="btn-secondary" onclick="closeModal('editModal')">Cancelar</button>
+                <button type="submit" class="btn-primary">
+                    <span class="material-symbols-outlined text-[16px]">save</span> Guardar Cambios
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ===================== MODAL CONFIRMAR ELIMINACIÓN ===================== -->
+<div class="modal-overlay" id="deleteModal">
+    <div class="bg-surface-container rounded-2xl p-6 max-w-sm w-full mx-4 shadow-[0_30px_60px_rgba(0,0,0,0.7)] border border-outline-variant/20">
+        <div class="flex items-center gap-3 mb-4">
+            <span class="material-symbols-outlined text-error text-[28px]">delete_forever</span>
+            <h3 class="font-headline font-bold text-lg">¿Eliminar cliente?</h3>
+        </div>
+        <p class="text-on-surface-variant text-sm mb-6">
+            Estás a punto de eliminar a <strong id="deleteClienteNombre"></strong>. Esta acción no se puede deshacer.
+        </p>
+        <div class="flex gap-3 justify-end">
+            <button class="btn-secondary" onclick="closeModal('deleteModal')">Cancelar</button>
+            <button class="btn-danger py-2 px-4 text-sm" id="btnConfirmarEliminar">Eliminar</button>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    // ---- VER DETALLES ----
+    function openDetailsModal(btn) {
+        document.getElementById('detalleNombre').value     = btn.dataset.nombre     ?? '';
+        document.getElementById('detalleCedula').value     = btn.dataset.cedula     ?? '';
+        document.getElementById('detalleTelefono').value   = btn.dataset.telefono   ?? '';
+        document.getElementById('detalleCorreo').value     = btn.dataset.correo     ?? '';
+        document.getElementById('detalleFecha').value      = btn.dataset.fecha      ?? '';
+        document.getElementById('detalleEstado').value     = btn.dataset.estado     ?? '';
+        document.getElementById('detalleMembresia').value  = btn.dataset.membresia  ?? '';
+        document.getElementById('detalleVencimiento').value = btn.dataset.vencimiento ?? '';
+        document.getElementById('detailsModal').classList.add('active');
+    }
+
+    // ---- ABRIR MODAL AGREGAR ----
+    function openClientModal() {
+        document.getElementById('clientModal').classList.add('active');
+    }
+
+    // ---- ABRIR MODAL EDITAR ----
+    function openEditModal(btn) {
+        document.getElementById('editIdCliente').value = btn.dataset.id      ?? '';
+        document.getElementById('editNombre').value    = btn.dataset.nombre  ?? '';
+        document.getElementById('editCedula').value    = btn.dataset.cedula  ?? '';
+        document.getElementById('editTelefono').value  = btn.dataset.telefono ?? '';
+        document.getElementById('editCorreo').value    = btn.dataset.correo  ?? '';
+        document.getElementById('editFecha').value     = btn.dataset.fecha   ?? '';
+
+        const selectEstado = document.getElementById('editEstado');
+        selectEstado.value = btn.dataset.estado ?? 'Activo';
+
+        document.getElementById('editModal').classList.add('active');
+    }
+
+    // ---- CONFIRMAR ELIMINACIÓN ----
+    function confirmarEliminacion(idCliente, nombreCliente) {
+        document.getElementById('deleteClienteNombre').textContent = nombreCliente;
+        document.getElementById('btnConfirmarEliminar').onclick = function () {
+            document.getElementById('formEliminar_' + idCliente).submit();
+        };
+        document.getElementById('deleteModal').classList.add('active');
+    }
+
+    // ---- CERRAR MODALES ----
+    function closeModal(modalId) {
+        document.getElementById(modalId).classList.remove('active');
+    }
+
+    // ---- FILTRO DE TABLA ----
+    function filterClients() {
+        const textoBusqueda = document.getElementById('clientSearch').value.toLowerCase();
+        const estadoFiltro  = document.getElementById('clientStatusFilter').value.toLowerCase();
+        const filas         = document.querySelectorAll('#clientsTableBody tr');
+
+        let visibles = 0;
+        filas.forEach(function (fila) {
+            const textoFila  = fila.textContent.toLowerCase();
+            const estadoCelda = fila.cells[5] ? fila.cells[5].textContent.toLowerCase() : '';
+            const coincideTexto  = textoFila.includes(textoBusqueda);
+            const coincideEstado = estadoFiltro === '' || estadoCelda.includes(estadoFiltro);
+
+            if (coincideTexto && coincideEstado) {
+                fila.style.display = '';
+                visibles++;
+            } else {
+                fila.style.display = 'none';
+            }
+        });
+
+        document.getElementById('clientsCount').textContent = 'Mostrando ' + visibles + ' cliente(s)';
+    }
+</script>

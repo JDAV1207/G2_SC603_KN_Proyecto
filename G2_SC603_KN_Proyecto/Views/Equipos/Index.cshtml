@@ -1,0 +1,291 @@
+﻿@model List<G2_SC603_KN_Proyecto.Models.Equipo>
+
+@{
+    Layout = "_Layout";
+}
+
+<div id="page-inventory" class="section-page active p-6 lg:p-8">
+
+    <!-- HEADER -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+
+        <div>
+            <h2 class="font-headline text-3xl font-bold tracking-tight">
+                Inventario y Equipos
+            </h2>
+
+            <p class="text-on-surface-variant text-xs mt-1">
+                Listado completo de equipos
+            </p>
+        </div>
+
+        <form method="get" class="flex gap-3 flex-wrap">
+            <div class="relative">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">
+                    search
+                </span>
+
+                <input type="text"
+                       name="buscar"
+                       placeholder="Buscar equipo..."
+                       class="input-field pl-9 py-2.5 text-sm w-52" />
+            </div>
+
+            <button type="submit" class="btn-primary py-2.5 text-sm">
+                Buscar
+            </button>
+        </form>
+
+    </div>
+
+    @if (TempData["MensajeExito"] != null)
+    {
+        <div class="bg-green-600 text-white p-4 rounded-lg mb-4">
+            @TempData["MensajeExito"]
+        </div>
+    }
+
+    <div class="flex justify-end mb-4">
+        <button class="btn-primary py-2.5 text-sm"
+                onclick="openAddEquipoModal()">
+            <span class="material-symbols-outlined text-[16px]">add</span>
+            Nuevo Equipo
+        </button>
+    </div>
+
+    <div class="bg-surface-container rounded-2xl overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.3)]">
+
+        <div class="overflow-x-auto">
+
+            <table class="data-table">
+
+                <thead>
+                    <tr>
+                        <th>Equipo</th>
+                        <th>Categoría</th>
+                        <th>Cantidad</th>
+                        <th>Estado</th>
+                        <th>Fecha Compra</th>
+                        <th>Costo</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var equipo in Model)
+                    {
+                        <tr class="@(equipo.Estado == "No Disponible" ? "row-disabled" : "")">
+
+                            <td>@equipo.Nombre</td>
+                            <td>Equipamiento</td>
+                            <td>1</td>
+                            <td>
+                                @if (equipo.Estado == "Disponible")
+                                {
+                                    <span class="badge-status badge-disponible">
+                                        Disponible
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge-status badge-no-disponible">
+                                        No disponible
+                                    </span>
+                                }
+                            </td>
+
+                            <td>@equipo.FechaCompra?.ToString("dd/MM/yyyy")</td>
+
+                            <td>₡@equipo.Costo</td>
+
+                            <td class="flex gap-2">
+
+                                <button class="btn-secondary px-3 py-1 text-sm"
+                                        onclick="openEditEquipoModal(
+                                                    '@equipo.IdEquipo',
+                                                    '@equipo.Nombre',
+                                                    '@equipo.Estado',
+                                                    '@(equipo.FechaCompra?.ToString("yyyy-MM-dd"))',
+                                                    '@equipo.Costo'
+                                                )">
+                                    Editar
+                                </button>
+
+                                @if (equipo.Estado == "No Disponible")
+                                {
+                                    <form asp-action="Activar" asp-route-id="@equipo.IdEquipo" method="post">
+                                        <button type="submit" class="btn-primary px-3 py-1 text-sm">
+                                            Activar
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <form asp-action="Desactivar" asp-route-id="@equipo.IdEquipo" method="post">
+                                        <button type="submit" class="btn-primary px-3 py-1 text-sm">
+                                            Desactivar
+                                        </button>
+                                    </form>
+                                }
+
+                                <form asp-action="EliminarEquipo"
+                                      method="post"
+                                      onsubmit="return confirm('¿Seguro que deseas eliminar este equipo?');"
+                                      style="display:inline;">
+
+                                    <input type="hidden" name="idEquipo" value="@equipo.IdEquipo" />
+
+                                    <button type="submit" class="btn-danger px-3 py-1 text-sm">
+                                        Eliminar
+                                    </button>
+                                </form>
+
+                            </td>
+
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ===================== MODAL AGREGAR EQUIPO ===================== -->
+<div class="modal-overlay" id="addEquipoModal">
+
+    <div class="modal-box">
+
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="font-headline font-bold text-xl">
+                Nuevo Equipo
+            </h3>
+
+            <button type="button"
+                    class="btn-icon"
+                    onclick="closeModal('addEquipoModal')">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+
+        <form asp-action="AgregarEquipo" method="post">
+
+            <div class="grid grid-cols-2 gap-4">
+
+                <div class="col-span-2">
+                    <label class="label-float">Nombre</label>
+                    <input type="text" name="Nombre" class="input-field" required />
+                </div>
+
+                <div>
+                    <label class="label-float">Estado</label>
+
+                    <select name="Estado" class="input-field" disabled>
+                        <option value="Disponible" selected>Disponible</option>
+                    </select>
+                    <input type="hidden" name="Estado" value="Disponible" />
+                </div>
+
+                <div>
+                    <label class="label-float">Fecha Compra</label>
+                    <input type="date" name="FechaCompra" class="input-field" />
+                </div>
+
+                <div class="col-span-2">
+                    <label class="label-float">Costo</label>
+                    <input type="number" step="0.01" name="Costo" class="input-field" />
+                </div>
+
+            </div>
+
+            <div class="flex justify-end gap-3 pt-4">
+
+                <button type="button"
+                        class="btn-secondary"
+                        onclick="closeModal('addEquipoModal')">
+                    Cancelar
+                </button>
+
+                <button type="submit"
+                        class="btn-primary">
+                    Guardar
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+<!-- MODAL EDITAR -->
+<div class="modal-overlay" id="editEquipoModal">
+
+    <div class="modal-box">
+
+        <div class="flex items-center justify-between mb-6">
+
+            <h3 class="font-headline font-bold text-xl">Editar Equipo</h3>
+
+            <button type="button"
+                    class="btn-icon"
+                    onclick="closeModal('editEquipoModal')">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+
+        </div>
+
+        <form asp-action="EditarEquipo" method="post">
+
+            <input type="hidden" name="idEquipo" id="editIdEquipo" />
+
+            <div class="grid grid-cols-2 gap-4">
+
+                <div class="col-span-2">
+                    <label class="label-float">Nombre del Equipo</label>
+                    <input type="text" name="nombre" id="editNombre" class="input-field" required />
+                </div>
+
+                <div>
+                    <label class="label-float">Estado</label>
+                    <select name="estado" id="editEstado" class="input-field">
+                        <option value="Disponible">Disponible</option>
+                        <option value="No disponible">No Disponible</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="label-float">Fecha Compra</label>
+                    <input type="date" name="fechaCompra" id="editFechaCompra" class="input-field" />
+                </div>
+
+                <div class="col-span-2">
+                    <label class="label-float">Costo</label>
+                    <input type="number" step="0.01" name="costo" id="editCosto" class="input-field" />
+                </div>
+
+            </div>
+
+            <div class="flex justify-end gap-3 pt-4">
+
+                <button type="button"
+                        class="btn-secondary"
+                        onclick="closeModal('editEquipoModal')">
+                    Cancelar
+                </button>
+
+                <button type="submit" class="btn-primary">
+                    Guardar Cambios
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>

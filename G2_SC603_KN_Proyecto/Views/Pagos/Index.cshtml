@@ -1,0 +1,214 @@
+﻿@model IEnumerable<G2_SC603_KN_Proyecto.Models.Pago>
+
+@{
+    Layout = "_Layout";
+    var membresias = ViewBag.Membresias as List<G2_SC603_KN_Proyecto.Models.ClienteMembresium>;
+    string rolActual = Context.Session.GetString("Rol") ?? string.Empty;
+}
+
+<div id="page-payments" class="section-page active p-6 lg:p-8">
+
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <div>
+            <h2 class="font-headline text-3xl font-bold tracking-tight">
+                Control de Pagos
+            </h2>
+        </div>
+
+        @if (rolActual == "ADMIN" || rolActual == "RECEPTION")
+        {
+            <button class="btn-primary py-2.5 text-sm"
+                    onclick="openModal('paymentModal')">
+                <span class="material-symbols-outlined text-[18px]">add</span>
+                Registrar Pago
+            </button>
+        }
+    </div>
+
+    <!-- Tabla de pagos -->
+    <div class="bg-surface-container rounded-2xl overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.3)]">
+        <div class="overflow-x-auto">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Cédula - Cliente</th>
+                        <th>Fecha</th>
+                        <th>Monto</th>
+                        <th>Método</th>
+                        <th>Descripción</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var pago in Model)
+                        {
+                            <tr>
+                                <td>
+                                    @(pago.IdClienteMembresiaNavigation?.IdClienteNavigation?.Cedula)
+                                    -
+                                    @(pago.IdClienteMembresiaNavigation?.IdClienteNavigation?.Nombre)
+                                </td>
+
+                                <td>
+                                    @pago.FechaPago.ToString("dd/MM/yyyy")
+                                </td>
+
+                                <td>
+                                    ₡ @pago.Monto.ToString("N2")
+                                </td>
+
+                                <td>
+                                    @pago.MetodoPago
+                                </td>
+
+                                <td>
+                                    @pago.Descripcion
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center">
+                                No hay pagos registrados
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <br />
+
+    <!-- SOLO ADMIN Y RECEPTION -->
+    @if (rolActual == "ADMIN" || rolActual == "RECEPTION")
+    {
+        <h3 class="font-headline text-2xl font-bold mb-4">
+            Clientes con pagos vencidos
+        </h3>
+
+        @if (ViewBag.ClientesVencidos != null &&
+             ViewBag.ClientesVencidos.Count > 0)
+        {
+            <div class="bg-surface-container rounded-2xl overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.3)]">
+
+                <div class="overflow-x-auto">
+
+                    <table class="data-table">
+
+                        <thead>
+                            <tr>
+                                <th>Cédula</th>
+                                <th>Cliente</th>
+                                <th>Fecha de vencimiento</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var cliente in ViewBag.ClientesVencidos)
+                            {
+                                <tr>
+                                    <td>@cliente.IdClienteNavigation.Cedula</td>
+                                    <td>@cliente.IdClienteNavigation.Nombre</td>
+                                    <td>@cliente.FechaFin.ToString("dd/MM/yyyy")</td>
+                                </tr>
+                            }
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+        }
+        else
+        {
+            <p class="text-outline">
+                No hay clientes con pagos vencidos.
+            </p>
+        }
+    }
+
+</div>
+
+<!-- MODAL SOLO ADMIN Y RECEPTION -->
+@if (rolActual == "ADMIN" || rolActual == "RECEPTION")
+{
+    <div class="modal-overlay" id="paymentModal">
+        <div class="modal-box">
+
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="font-headline font-bold text-xl">
+                    Registrar Pago
+                </h3>
+
+                <button onclick="closeModal('paymentModal')" class="btn-icon">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+
+            <form asp-action="RegistrarPago" method="post" class="space-y-4">
+
+                <div>
+                    <label class="label-float">Cliente *</label>
+                    <select name="IdClienteMembresia" class="input-field" required>
+
+                        <option value="">Seleccione un cliente</option>
+
+                        @if (membresias != null)
+                        {
+                            foreach (var m in membresias)
+                            {
+                                <option value="@m.IdClienteMembresia">
+                                    @m.IdClienteNavigation.Cedula - @m.IdClienteNavigation.Nombre
+                                </option>
+                            }
+                        }
+
+                    </select>
+                </div>
+
+                <div>
+                    <label class="label-float">Monto *</label>
+                    <input type="number" step="0.01" name="Monto" class="input-field" required />
+                </div>
+
+                <div>
+                    <label class="label-float">Fecha *</label>
+                    <input type="date" name="FechaPago" class="input-field" required />
+                </div>
+
+                <div>
+                    <label class="label-float">Método de Pago</label>
+                    <select name="MetodoPago" class="input-field">
+                        <option value="Efectivo">Efectivo</option>
+                        <option value="SINPE">SINPE</option>
+                        <option value="Tarjeta">Tarjeta</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="label-float">Descripción</label>
+                    <input type="text" name="Descripcion" class="input-field" />
+                </div>
+
+                <div class="flex gap-3 pt-2 justify-end">
+                    <button type="button" class="btn-secondary" onclick="closeModal('paymentModal')">
+                        Cancelar
+                    </button>
+
+                    <button type="submit" class="btn-primary">
+                        <span class="material-symbols-outlined text-[16px]">save</span>
+                        Guardar
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+}

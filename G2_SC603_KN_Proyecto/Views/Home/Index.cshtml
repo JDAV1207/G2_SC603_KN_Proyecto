@@ -1,0 +1,65 @@
+﻿@{
+    Layout = "_LayoutExterno";
+}
+
+<body class="bg-surface text-on-surface min-h-screen">
+
+    @if (ViewBag.Error != null)
+    {
+        <div class="toast show" style="background:#201f1f; color:#ffb4ab;">
+            <span class="material-symbols-outlined">error</span>
+            <span>@ViewBag.Error</span>
+        </div>
+    }
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- LOGIN SCREEN                                                        -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div id="loginScreen" class="min-h-screen flex items-center justify-center bg-login-hero relative overflow-hidden">
+  <!-- Ambient blobs -->
+  <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-primary-container rounded-full mix-blend-screen filter blur-[120px] opacity-10 pointer-events-none"></div>
+  <div class="absolute bottom-1/4 right-1/3 w-80 h-80 bg-tertiary-container rounded-full mix-blend-screen filter blur-[100px] opacity-10 pointer-events-none"></div>
+
+  <div class="w-full max-w-md mx-auto p-8 glass-panel rounded-2xl shadow-[0px_30px_60px_rgba(0,0,0,0.7)] border border-outline-variant/15 relative z-10">
+    <div class="absolute -top-16 -right-16 w-48 h-48 bg-primary-container rounded-full mix-blend-screen filter blur-[80px] opacity-25 pointer-events-none"></div>
+    <div class="absolute -bottom-16 -left-16 w-48 h-48 bg-tertiary-container rounded-full mix-blend-screen filter blur-[80px] opacity-20 pointer-events-none"></div>
+
+    <div class="text-center mb-10 relative z-10">
+      <div class="inline-flex items-center gap-2 mb-3">
+        <span class="material-symbols-outlined text-primary-container text-3xl" style="font-variation-settings:'FILL' 1">fitness_center</span>
+      </div>
+      <h1 class="font-headline font-black text-4xl tracking-tighter text-primary-container mb-1 italic sidebar-logo-glow">Orion Fit Studio</h1>
+      <p class="font-label text-on-surface-variant text-xs tracking-[0.2em] uppercase opacity-70">Elite Management System</p>
+    </div>
+
+    <form id="loginForm" asp-action="Index" method="post" class="space-y-5 relative z-10">
+      <div>
+        <label class="label-float" for="loginUser">Usuario</label>
+        <div class="relative">
+          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]" style="font-variation-settings:'wght' 300">person</span>
+          <input class="input-field pl-10" id="loginUser" name="username" type="text" placeholder="Ingrese su usuario" />
+        </div>
+      </div>
+      <div>
+        <label class="label-float flex justify-between" for="loginPass">
+          <span>Contraseña</span>
+          <a href="#" class="text-primary-container text-xs font-medium hover:text-primary transition-colors normal-case tracking-normal">¿Olvidó su clave?</a>
+        </label>
+        <div class="relative">
+          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]" style="font-variation-settings:'wght' 300">lock</span>
+          <input class="input-field pl-10 pr-10" id="loginPass" name="password" type="password" placeholder="••••••••" />
+        <button type="button" id="togglePassword"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface transition-colors">
+            <span id="toggleIcon" class="material-symbols-outlined text-[20px]" style="font-variation-settings:'wght' 300">visibility_off</span>
+        </button>
+        </div>
+      </div>
+      <div class="pt-2">
+                    <button type="submit" class="btn-primary w-full justify-center text-base py-3.5">
+                        <span class="material-symbols-outlined text-[16px]"></span> Iniciar Sesión
+                    </button>
+      </div>
+       <p class="text-center text-xs text-outline mt-4">© @DateTime.Now.Year, Orion Fit</p>
+    </form>
+  </div>
+</div>
+</body>

@@ -1,0 +1,78 @@
+﻿@model G2_SC603_KN_Proyecto.Models.UsuarioNombre
+@{
+    Layout = "_Layout";
+    string rolActual = Context.Session.GetString("Rol") ?? string.Empty;
+}
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="toast show" style="background:#201f1f; color:#4ade80;">
+        <span class="material-symbols-outlined">check_circle</span>
+        <span>@TempData["SuccessMessage"]</span>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="toast show" style="background:#201f1f; color:#ffb4ab;">
+        <span class="material-symbols-outlined">error</span>
+        <span>@TempData["ErrorMessage"]</span>
+    </div>
+}
+<div id="page-profile" class="section-page active p-6 lg:p-8">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <div>
+            <h2 class="font-headline text-3xl font-bold tracking-tight">Configuración de Cuenta</h2>
+            <p class="text-on-surface-variant text-xs mt-1">Seguridad y datos personales</p>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex border-b border-outline mb-6">
+        <button class="tab-btn active" onclick="showTab('tab-password')">Cambiar Contraseña</button>
+        <button class="tab-btn" onclick="showTab('tab-data')">Cambiar Datos</button>
+    </div>
+
+    <!-- Tab: Cambiar Contraseña -->
+    <div id="tab-password" class="tab-content active">
+        <form asp-action="CambiarContraseña" method="post" class="space-y-4">
+            <div>
+                <label class="label-float">Contraseña Actual *</label>
+                <input type="password" name="PasswordActual" class="input-field" required />
+            </div>
+            <div>
+                <label class="label-float">Nueva Contraseña *</label>
+                <input type="password" name="PasswordNueva" class="input-field" required />
+            </div>
+            <div class="flex gap-3 pt-2 justify-end">
+                <button type="reset" class="btn-secondary">Cancelar</button>
+                <button type="submit" class="btn-primary">
+                    <span class="material-symbols-outlined text-[16px]">lock_reset</span> Guardar Cambios
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tab: Cambiar Datos -->
+    <div id="tab-data" class="tab-content hidden">
+        <form asp-action="CambiarDatos" method="post" class="space-y-4">
+            <input type="hidden" name="Rol" value="@Model.Rol" />
+            <input type="hidden" name="Username" value="@Model.Username" />
+            <div>
+                <label class="label-float">Nombre Completo *</label>
+                <input type="text" name="Nombre" class="input-field" value="@Model.Nombre" required />
+            </div>
+            <div>
+                <label class="label-float">Correo Electrónico *</label>
+                <input type="email" name="Correo" class="input-field" value="@Model.Correo" required />
+            </div>
+            <div>
+                <label class="label-float">Teléfono</label>
+                <input type="text" name="Telefono" class="input-field" value="@Model.Telefono" />
+            </div>
+            <div class="flex gap-3 pt-2 justify-end">
+                <button type="reset" class="btn-secondary">Cancelar</button>
+                <button type="submit" class="btn-primary">Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
