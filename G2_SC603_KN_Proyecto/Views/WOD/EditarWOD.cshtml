@@ -1,0 +1,179 @@
+﻿@model G2_SC603_KN_Proyecto.Models.Rutina
+@{
+    Layout = "_Layout";
+    var ejerciciosRutina = ViewBag.EjerciciosRutina as
+        List<G2_SC603_KN_Proyecto.Models.RutinaEjercicio>;
+    var todosEjercicios = ViewBag.TodosEjercicios as
+        List<G2_SC603_KN_Proyecto.Models.EjercicioResumen>;
+}
+
+<div class="section-page active p-6 lg:p-8 max-w-2xl mx-auto">
+
+    <div class="flex items-center gap-3 mb-8">
+        <a asp-controller="WOD" asp-action="MostrarWOD" class="btn-icon">
+            <span class="material-symbols-outlined">arrow_back</span>
+        </a>
+        <div>
+            <h2 class="font-headline text-2xl font-bold">Editar WOD</h2>
+            <p class="text-on-surface-variant text-xs mt-1">RMGM-WOD-004</p>
+        </div>
+    </div>
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="toast show mb-4" style="background:#201f1f; color:#ffb4ab;">
+            <span class="material-symbols-outlined">error</span>
+            <span>@TempData["ErrorMessage"]</span>
+        </div>
+    }
+
+    <form asp-action="EditarWOD" method="post" class="space-y-5"
+          onsubmit="prepareEditSubmit(event)">
+
+        <input type="hidden" name="idRutina" value="@Model.IdRutina" />
+        <input type="hidden" name="ejerciciosJson" id="ejerciciosJsonEdit" />
+
+        <div>
+            <label class="label-float">Nombre del Entrenamiento *</label>
+            <input type="text" name="nombre" id="editNombre"
+                   class="input-field" value="@Model.Nombre" required />
+        </div>
+
+        <div>
+            <label class="label-float">Objetivo / Notas del Coach</label>
+            <textarea name="objetivo" id="editObjetivo"
+                      class="input-field" rows="2">@Model.Objetivo</textarea>
+        </div>
+
+        <div>
+            <div class="flex items-center justify-between mb-3">
+                <label class="label-float mb-0">Ejercicios *</label>
+                <button type="button"
+                        class="text-primary-container text-xs font-semibold
+                               flex items-center gap-1 hover:text-primary transition-colors"
+                        onclick="agregarFilaEdit()">
+                    <span class="material-symbols-outlined text-[16px]">add</span>
+                    Agregar ejercicio
+                </button>
+            </div>
+            <div id="editExerciseList" class="space-y-2"></div>
+            <p id="errorEditEjercicios"
+               class="text-error text-xs mt-1 hidden">
+                Debe agregar al menos un ejercicio.
+            </p>
+        </div>
+
+        <div class="flex gap-3 pt-2 justify-end">
+            <a asp-controller="WOD" asp-action="MostrarWOD"
+               class="btn-secondary">Cancelar</a>
+            <button type="submit" class="btn-primary">
+                <span class="material-symbols-outlined text-[16px]">save</span>
+                Guardar cambios
+            </button>
+        </div>
+
+    </form>
+</div>
+
+<script>
+    // Ejercicios disponibles (todos los del sistema)
+    const ejerciciosDisponibles = [
+        @foreach (var ej in todosEjercicios ?? new List<G2_SC603_KN_Proyecto.Models.EjercicioResumen>())
+        {
+                @Html.Raw("{ id: " + ej.IdEjercicio + ", nombre: '" + ej.Nombre.Replace("'", "\\'") + "' },")
+        }
+    ];
+
+    // Ejercicios actuales del WOD (pre-cargados)
+    const ejerciciosActuales = [
+        @foreach (var re in ejerciciosRutina ?? new List<G2_SC603_KN_Proyecto.Models.RutinaEjercicio>())
+        {
+                @Html.Raw("{ id: " + re.IdEjercicio +
+                          ", series: " + re.Series +
+                          ", reps: " + re.Repeticiones +
+                          ", descanso: " + (re.Descanso ?? 0) + " },")
+                }
+    ];
+
+    function buildOptions(selectedId) {
+        let html = '<option value="">Seleccionar...</option>';
+        ejerciciosDisponibles.forEach(function (ej) {
+            const sel = ej.id === selectedId ? 'selected' : '';
+            html += '<option value="' + ej.id + '" ' + sel + '>' + ej.nombre + '</option>';
+        });
+        return html;
+    }
+
+    function agregarFilaEdit(idEj, series, reps, descanso) {
+        const lista = document.getElementById('editExerciseList');
+        const fila  = document.createElement('div');
+        fila.className = 'grid grid-cols-12 gap-2 items-center';
+        fila.dataset.index = lista.children.length;
+        fila.innerHTML =
+            '<div class="col-span-5">' +
+                '<select class="input-field text-sm ej-id" required>' +
+                    buildOptions(idEj || 0) +
+                '</select>' +
+            '</div>' +
+            '<div class="col-span-2">' +
+                '<input type="number" class="input-field text-sm ej-series" ' +
+                       'placeholder="Series" min="1" value="' + (series || '') + '" required />' +
+            '</div>' +
+            '<div class="col-span-2">' +
+                '<input type="number" class="input-field text-sm ej-reps" ' +
+                       'placeholder="Reps" min="1" value="' + (reps || '') + '" required />' +
+            '</div>' +
+            '<div class="col-span-2">' +
+                '<input type="number" class="input-field text-sm ej-descanso" ' +
+                       'placeholder="Desc(s)" min="0" value="' + (descanso || '') + '" />' +
+            '</div>' +
+            '<div class="col-span-1 flex justify-center">' +
+                '<button type="button" class="btn-icon" onclick="eliminarFilaEdit(this)">' +
+                    '<span class="material-symbols-outlined text-[18px] text-error">delete</span>' +
+                '</button>' +
+            '</div>';
+        lista.appendChild(fila);
+    }
+
+    function eliminarFilaEdit(btn) {
+        btn.closest('div[data-index]').remove();
+    }
+
+    function prepareEditSubmit(evento) {
+        const filas = document.querySelectorAll('#editExerciseList div[data-index]');
+        if (filas.length === 0) {
+            evento.preventDefault();
+            document.getElementById('errorEditEjercicios').classList.remove('hidden');
+            return;
+        }
+        const ejercicios = [];
+        let valido = true;
+        filas.forEach(function (fila) {
+            const idEjercicio  = parseInt(fila.querySelector('.ej-id').value);
+            const series       = parseInt(fila.querySelector('.ej-series').value);
+            const repeticiones = parseInt(fila.querySelector('.ej-reps').value);
+            const descanso     = parseInt(fila.querySelector('.ej-descanso').value) || 0;
+            if (!idEjercicio || !series || !repeticiones) { valido = false; return; }
+            ejercicios.push({ IdEjercicio: idEjercicio, Series: series,
+                              Repeticiones: repeticiones, Descanso: descanso });
+        });
+        if (!valido || ejercicios.length === 0) {
+            evento.preventDefault();
+            document.getElementById('errorEditEjercicios').classList.remove('hidden');
+            return;
+        }
+        document.getElementById('errorEditEjercicios').classList.add('hidden');
+        document.getElementById('ejerciciosJsonEdit').value = JSON.stringify(ejercicios);
+    }
+
+    // Pre-cargar ejercicios actuales al cargar la página
+    window.addEventListener('DOMContentLoaded', function () {
+        if (ejerciciosActuales.length > 0) {
+            ejerciciosActuales.forEach(function (ej) {
+                agregarFilaEdit(ej.id, ej.series, ej.reps, ej.descanso);
+            });
+        } else {
+            agregarFilaEdit();
+        }
+    });
+</script>

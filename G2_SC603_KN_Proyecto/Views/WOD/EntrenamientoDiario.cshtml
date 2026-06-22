@@ -1,0 +1,88 @@
+﻿@model IEnumerable<G2_SC603_KN_Proyecto.Models.ViewModels.Wod.WodHistorialItemViewModel>
+@{
+    Layout = "_Layout";
+    string rolActual = Context.Session.GetString("Rol") ?? string.Empty;
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="toast show" style="background:#201f1f; color:#4ade80;">
+        <span class="material-symbols-outlined">check_circle</span>
+        <span>@TempData["SuccessMessage"]</span>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="toast show" style="background:#201f1f; color:#ffb4ab;">
+        <span class="material-symbols-outlined">error</span>
+        <span>@TempData["ErrorMessage"]</span>
+    </div>
+}
+
+<div id="page-wod-diario" class="section-page active p-6 lg:p-8">
+
+    <div class="flex items-center gap-3 mb-8">
+        <a asp-controller="WOD" asp-action="MostrarWOD" class="btn-icon">
+            <span class="material-symbols-outlined">arrow_back</span>
+        </a>
+        <div>
+            <h2 class="font-headline text-3xl font-bold tracking-tight">Entrenamiento Diario</h2>
+            <p class="text-on-surface-variant text-xs mt-1">
+                RMGM-WOD-002 — @DateTime.Today.ToString("dddd dd 'de' MMMM, yyyy",
+                                 new System.Globalization.CultureInfo("es-ES"))
+            </p>
+        </div>
+    </div>
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+            @foreach (var item in Model)
+            {
+                <div class="bg-surface-container rounded-2xl p-5 shadow-[0_8px_24px_rgba(0,0,0,0.4)]">
+                    <div class="flex items-start justify-between mb-2">
+                        <h3 class="font-headline font-bold text-base">@item.Nombre</h3>
+                        <a asp-controller="WOD" asp-action="DetalleEntrenamiento"
+                           asp-route-id="@item.IdRutina" class="btn-icon" title="Ver detalle completo">
+                            <span class="material-symbols-outlined text-[18px]">visibility</span>
+                        </a>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(item.Objetivo))
+                    {
+                        <p class="text-on-surface-variant text-xs mb-3">@item.Objetivo</p>
+                    }
+
+                    <div class="flex flex-wrap gap-2 mb-3">
+                        <span class="text-xs text-outline">
+                            <span class="material-symbols-outlined text-[14px] align-middle">person</span>
+                            Coach: @item.NombreEntrenador
+                        </span>
+                        @if ((rolActual == "ADMIN" || rolActual == "TRAINER") && item.NombreCliente != null)
+                        {
+                            <span class="text-xs text-outline">
+                                <span class="material-symbols-outlined text-[14px] align-middle">groups</span>
+                                Cliente: @item.NombreCliente
+                            </span>
+                        }
+                        <span class="text-xs text-outline">
+                            <span class="material-symbols-outlined text-[14px] align-middle">event</span>
+                            @item.Fecha?.ToString("dd/MM/yyyy")
+                        </span>
+                    </div>
+
+                    <p class="text-xs text-on-surface-variant">
+                        @item.CantidadEjercicios ejercicio(s) — ver detalle para series, repeticiones y descanso.
+                    </p>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="bg-surface-container rounded-2xl p-8 text-center text-on-surface-variant">
+            No hay entrenamientos disponibles.
+        </div>
+    }
+</div>

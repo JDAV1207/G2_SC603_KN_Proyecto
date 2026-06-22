@@ -1,5 +1,106 @@
-﻿################################################################################
-# Este archivo .gitignore ha sido creado automáticamente por Microsoft(R) Visual Studio.
+################################################################################
+# .gitignore para proyectos .NET / ASP.NET Core MVC (Visual Studio)
+# Cubre carpetas de compilación, archivos de usuario/IDE y artefactos
+# generados que NO deben subirse al repositorio.
 ################################################################################
 
-/.vs
+## ----------------------------------------------------------------------------
+## Visual Studio
+## ----------------------------------------------------------------------------
+.vs/
+*.user
+*.userosscache
+*.suo
+*.userprefs
+*.sln.docstates
+*.DotSettings.user
+
+## ----------------------------------------------------------------------------
+## Resultados de build (.NET) — la causa más común de repos "sucios"
+## ----------------------------------------------------------------------------
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+build/
+bld/
+out/
+artifacts/
+msbuild.log
+msbuild.err
+msbuild.wrn
+
+## ----------------------------------------------------------------------------
+## Publicación (dotnet publish / perfiles de publicación)
+## ----------------------------------------------------------------------------
+publish/
+PublishProfiles/*.pubxml.user
+*.pubxml
+*.azurePubxml
+*.publishproj
+
+## ----------------------------------------------------------------------------
+## NuGet
+## ----------------------------------------------------------------------------
+*.nupkg
+*.snupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+*.nuget.props
+*.nuget.targets
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+## ----------------------------------------------------------------------------
+## Pruebas / cobertura
+## ----------------------------------------------------------------------------
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*.trx
+*.coverage
+*.coveragexml
+coverage/
+
+## ----------------------------------------------------------------------------
+## ReSharper / Rider
+## ----------------------------------------------------------------------------
+_ReSharper*/
+*.[Rr]e[Ss]harper
+.idea/
+*.sln.iml
+
+## ----------------------------------------------------------------------------
+## Otros archivos de entorno / sistema operativo
+## ----------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.bak
+*.swp
+*.cache
+
+## ----------------------------------------------------------------------------
+## Secretos locales (NO subir credenciales reales)
+## Si llegas a mover la cadena de conexión real a uno de estos archivos,
+## descomenta la línea correspondiente.
+## ----------------------------------------------------------------------------
+# appsettings.Development.json
+# appsettings.Local.json
+*.env
+.env.*
+secrets.json
+
+## ----------------------------------------------------------------------------
+## Node (en caso de usar herramientas front-end dentro del proyecto)
+## ----------------------------------------------------------------------------
+node_modules/
+npm-debug.log*

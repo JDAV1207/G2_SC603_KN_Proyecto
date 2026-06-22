@@ -9,7 +9,7 @@ public partial class RutinaEjercicio
 
     public int IdRutina { get; set; }
 
-    public int IdReserva { get; set; }
+    public int? IdReserva { get; set; }
 
     public int IdEjercicio { get; set; }
 

@@ -1,4 +1,5 @@
 using G2_SC603_KN_Proyecto.Models;
+using G2_SC603_KN_Proyecto.Services.Wod;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,6 +12,9 @@ builder.Services.AddDbContext<DbOrionFitContext>(options =>
     )
 );
 
+// Servicios de negocio de WOD
+builder.Services.AddScoped<IWodConsultaService, WodConsultaService>();
+builder.Services.AddScoped<IWodEliminacionService, WodEliminacionService>();
 builder.Services.AddAuthorization();
 
 builder.Services.AddControllersWithViews();

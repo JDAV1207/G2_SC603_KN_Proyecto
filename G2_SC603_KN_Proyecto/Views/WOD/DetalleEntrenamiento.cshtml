@@ -1,0 +1,79 @@
+﻿@model G2_SC603_KN_Proyecto.Models.ViewModels.Wod.WodDetalleViewModel
+@{
+    Layout = "_Layout";
+    string rolActual = Context.Session.GetString("Rol") ?? string.Empty;
+}
+
+<div id="page-wod-detalle" class="section-page active p-6 lg:p-8 max-w-2xl mx-auto">
+
+    <div class="flex items-center gap-3 mb-8">
+        <button type="button" class="btn-icon" onclick="history.back()">
+            <span class="material-symbols-outlined">arrow_back</span>
+        </button>
+        <div>
+            <h2 class="font-headline text-2xl font-bold">Detalle del Entrenamiento</h2>
+            <p class="text-on-surface-variant text-xs mt-1">RMGM-WOD-002 / RMGM-WOD-003</p>
+        </div>
+    </div>
+
+    <div class="bg-surface-container rounded-2xl p-6 shadow-[0_20px_40px_rgba(0,0,0,0.3)] mb-5">
+        <h3 class="font-headline font-bold text-xl mb-1">@Model.Nombre</h3>
+        @if (!string.IsNullOrEmpty(Model.Objetivo))
+        {
+            <p class="text-on-surface-variant text-sm mb-3">@Model.Objetivo</p>
+        }
+        <p class="text-xs text-outline">
+            <span class="material-symbols-outlined text-[14px] align-middle">person</span>
+            Coach: @Model.NombreEntrenador
+        </p>
+    </div>
+
+    <div class="bg-surface-container rounded-2xl p-6 shadow-[0_20px_40px_rgba(0,0,0,0.3)] mb-5">
+        <h4 class="font-headline font-semibold text-sm uppercase tracking-wider text-on-surface-variant mb-4">
+            Ejercicios
+        </h4>
+
+        @if (Model.Ejercicios.Any())
+        {
+            <div class="space-y-2">
+                @foreach (var ej in Model.Ejercicios)
+                {
+                    <div class="flex items-center justify-between bg-surface-container-high rounded-lg px-4 py-3">
+                        <div>
+                            <p class="text-sm font-medium">@ej.Nombre</p>
+                            @if (!string.IsNullOrEmpty(ej.GrupoMuscular))
+                            {
+                                <p class="text-xs text-outline">@ej.GrupoMuscular</p>
+                            }
+                        </div>
+                        <span class="text-xs text-outline whitespace-nowrap">
+                            @ej.Series×@ej.Repeticiones | @(ej.Descanso ?? 0)s descanso
+                        </span>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <p class="text-on-surface-variant text-sm">Este entrenamiento no tiene ejercicios registrados.</p>
+        }
+    </div>
+
+    @if ((rolActual == "ADMIN" || rolActual == "TRAINER") && Model.ClientesAsignados.Any())
+    {
+        <div class="bg-surface-container rounded-2xl p-6 shadow-[0_20px_40px_rgba(0,0,0,0.3)]">
+            <h4 class="font-headline font-semibold text-sm uppercase tracking-wider text-on-surface-variant mb-4">
+                Clientes con este entrenamiento asignado
+            </h4>
+            <div class="space-y-2">
+                @foreach (var cliente in Model.ClientesAsignados)
+                {
+                    <div class="flex items-center justify-between text-sm">
+                        <span>@cliente.NombreCliente</span>
+                        <span class="text-xs text-outline">@cliente.FechaAsignacion.ToString("dd/MM/yyyy")</span>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>

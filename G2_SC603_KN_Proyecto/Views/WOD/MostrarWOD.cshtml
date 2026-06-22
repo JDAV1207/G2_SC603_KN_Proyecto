@@ -24,15 +24,21 @@
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
             <h2 class="font-headline text-3xl font-bold tracking-tight">WOD — Workout of the Day</h2>
-            <p class="text-on-surface-variant text-xs mt-1">RMGM-WOD-001 al RMGM-WOD-005</p>
         </div>
-        @if (rolActual == "ADMIN" || rolActual == "TRAINER")
-        {
-            <button class="btn-primary py-2.5 text-sm" onclick="openWODModal()">
-                <span class="material-symbols-outlined text-[18px]">add</span> Publicar WOD
-            </button>
-        }
-    </div>
+        <div class="flex items-center gap-2">
+            <a asp-controller="WOD" asp-action="EntrenamientoDiario" class="btn-secondary py-2.5 text-sm">
+                <span class="material-symbols-outlined text-[18px]">today</span> Hoy
+            </a>
+            <a asp-controller="WOD" asp-action="HistorialEntrenamientos" class="btn-secondary py-2.5 text-sm">
+                <span class="material-symbols-outlined text-[18px]">history</span> Historial
+            </a>
+            @if (rolActual == "ADMIN" || rolActual == "TRAINER")
+            {
+                <button class="btn-primary py-2.5 text-sm" onclick="openWODModal()">
+                    <span class="material-symbols-outlined text-[18px]">add</span> Publicar WOD
+                </button>
+            }
+        </div>
 
     <!-- WOD Cards Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5" id="wodGrid">
@@ -48,9 +54,29 @@
             {
                 var primeraFila = grupo.First();
                 <div class="bg-surface-container rounded-2xl p-5 shadow-[0_8px_24px_rgba(0,0,0,0.4)]">
+
                     <div class="flex items-start justify-between mb-3">
                         <h3 class="font-headline font-bold text-base">@primeraFila.Nombre</h3>
+                            <div class="flex gap-1">
+                                @if (rolActual == "ADMIN" || rolActual == "TRAINER")
+                                {
+                                    <a asp-controller="WOD" asp-action="EditarWOD"
+                                       asp-route-id="@primeraFila.IdRutina"
+                                       class="btn-icon" title="Editar WOD">
+                                        <span class="material-symbols-outlined text-[18px]">edit</span>
+                                    </a>
+                                }
+                                @if (rolActual == "ADMIN")
+                                {
+                                    <button class="btn-icon" title="Eliminar WOD"
+                                            onclick="confirmarEliminar(@primeraFila.IdRutina, '@primeraFila.Nombre.Replace("'", "\\'")')">
+                                        <span class="material-symbols-outlined text-[18px] text-error">delete</span>
+                                    </button>
+                                }
+                            </div>
                     </div>
+
+
                     @if (!string.IsNullOrEmpty(primeraFila.Objetivo))
                     {
                         <p class="text-on-surface-variant text-xs mb-4">@primeraFila.Objetivo</p>
@@ -124,6 +150,9 @@
             </div>
         </form>
     </div>
+    <form id="formEliminar" method="post" style="display:none">
+        @Html.AntiForgeryToken()
+    </form>
 </div>
 
 <script>
@@ -233,4 +262,12 @@
     function closeModal(modalId) {
         document.getElementById(modalId).classList.remove('active');
     }
+        // ---- CONFIRMAR ELIMINAR WOD ----
+    function confirmarEliminar(id, nombre) {
+        if (confirm('¿Eliminar el WOD "' + nombre + '"? Esta acción no se puede deshacer.')) {
+            document.getElementById('formEliminar').action = '/WOD/EliminarWOD/' + id;
+            document.getElementById('formEliminar').submit();
+        }
+    }
+
 </script>
