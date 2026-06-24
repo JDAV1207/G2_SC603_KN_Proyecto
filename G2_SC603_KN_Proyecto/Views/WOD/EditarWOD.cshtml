@@ -15,7 +15,6 @@
         </a>
         <div>
             <h2 class="font-headline text-2xl font-bold">Editar WOD</h2>
-            <p class="text-on-surface-variant text-xs mt-1">RMGM-WOD-004</p>
         </div>
     </div>
 
@@ -76,7 +75,7 @@
 </div>
 
 <script>
-    // Ejercicios disponibles (todos los del sistema)
+    // Ejercicios disponibles
     const ejerciciosDisponibles = [
         @foreach (var ej in todosEjercicios ?? new List<G2_SC603_KN_Proyecto.Models.EjercicioResumen>())
         {
@@ -84,7 +83,7 @@
         }
     ];
 
-    // Ejercicios actuales del WOD (pre-cargados)
+    // Ejercicios actuales del WOD 
     const ejerciciosActuales = [
         @foreach (var re in ejerciciosRutina ?? new List<G2_SC603_KN_Proyecto.Models.RutinaEjercicio>())
         {
