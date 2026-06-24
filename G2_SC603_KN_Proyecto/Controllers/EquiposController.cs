@@ -12,7 +12,7 @@ public class EquiposController : Controller
         _context = context;
     }
 
-    public IActionResult Index(string buscar)
+    public IActionResult MostrarEquipo(string buscar)
     {
         var equipos = _context.Equipo.AsQueryable();
 
@@ -48,7 +48,7 @@ public class EquiposController : Controller
                 fechaCompra.HasValue ? fechaCompra.Value : (object)DBNull.Value,
                 costo.HasValue ? costo.Value : (object)DBNull.Value
             );
-            TempData["SuccessMessage"] =
+            TempData["MensajeExito"] =
                 "Equipo actualizado correctamente.";
         }
         catch (Exception ex)
@@ -57,7 +57,7 @@ public class EquiposController : Controller
                 "Error al actualizar equipo: " + ex.Message;
         }
 
-        return RedirectToAction("Index");
+        return RedirectToAction("MostrarEquipo");
     }
 
 
@@ -86,7 +86,7 @@ public class EquiposController : Controller
             TempData["ErrorMessage"] = "Error: " + ex.Message;
         }
 
-        return RedirectToAction("Index");
+        return RedirectToAction("MostrarEquipo");
     }
 
     [HttpGet]
@@ -121,7 +121,7 @@ public class EquiposController : Controller
         TempData["MensajeExito"] =
             "Equipo activado correctamente.";
 
-        return RedirectToAction(nameof(Index));
+        return RedirectToAction(nameof(MostrarEquipo));
     }
 
     [HttpPost]
@@ -142,7 +142,7 @@ public class EquiposController : Controller
         TempData["MensajeExito"] =
             "Equipo desactivado correctamente.";
 
-        return RedirectToAction(nameof(Index));
+        return RedirectToAction(nameof(MostrarEquipo));
     }
 
     [HttpPost]
@@ -162,6 +162,6 @@ public class EquiposController : Controller
             TempData["ErrorMessage"] = "Error al eliminar: " + ex.Message;
         }
 
-        return RedirectToAction("Index");
+        return RedirectToAction("MostrarEquipo");
     }
 }

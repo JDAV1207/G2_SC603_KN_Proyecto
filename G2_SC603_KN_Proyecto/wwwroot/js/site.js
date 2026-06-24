@@ -303,3 +303,43 @@ function openEditEquipoModal(idEquipo, nombre, estado, fechaCompra, costo) {
 function openAddEquipoModal() {
     document.getElementById("addEquipoModal").classList.add("active");
 }
+
+// ===================== TOAST GENERICO =====================
+// Reutilizable en todo el proyecto. type: "success" | "error" | "warning"
+let toastTimeoutId = null;
+
+function showToast(message, type) {
+    const toast = document.getElementById("toast");
+    const icon = document.getElementById("toastIcon");
+    const text = document.getElementById("toastMessage");
+
+    if (!toast || !icon || !text) return;
+
+    const config = {
+        success: { iconName: "check_circle", color: "#22c55e" },
+        error: { iconName: "error", color: "#ef4444" },
+        warning: { iconName: "warning", color: "#f59e0b" }
+    };
+
+    const selected = config[type] || config.success;
+
+    icon.textContent = selected.iconName;
+    icon.style.color = selected.color;
+    text.textContent = message;
+
+    toast.classList.add("show");
+
+    if (toastTimeoutId) {
+        clearTimeout(toastTimeoutId);
+    }
+
+    toastTimeoutId = setTimeout(function () {
+        toast.classList.remove("show");
+    }, 4000);
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    if (window.__toastData && window.__toastData.message) {
+        showToast(window.__toastData.message, window.__toastData.type);
+    }
+});
