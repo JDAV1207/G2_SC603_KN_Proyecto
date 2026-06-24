@@ -60,7 +60,7 @@
                     <a asp-controller="Equipos" asp-action="MostrarEquipo" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl font-headline text-xs font-semibold uppercase tracking-wider cursor-pointer" data-section="inventory">
                         <span class="material-symbols-outlined text-[22px]" style="font-variation-settings:'wght' 300">inventory_2</span> Inventario
                     </a>
-                    <a asp-controller="Mantenimiento" asp-action="MostrarMantenimiento" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl font-headline text-xs font-semibold uppercase tracking-wider cursor-pointer" data-section="maintenance">
+                    <a asp-controller="Mantenimiento"  asp-action="MostrarMantenimiento" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl font-headline text-xs font-semibold uppercase tracking-wider cursor-pointer" data-section="maintenance">
                         <span class="material-symbols-outlined text-[22px]" style="font-variation-settings:'wght' 300">build</span> Mantenimiento
                     </a>
                     <a asp-controller="Reportes" asp-action="Index" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl font-headline text-xs font-semibold uppercase tracking-wider cursor-pointer" data-section="reports">
@@ -70,7 +70,9 @@
                         <span class="material-symbols-outlined text-[22px]" style="font-variation-settings:'wght' 300">person</span> Usuarios
                     </a>
                 }
+
                 else if (rol == "USER")
+
                 {
                     <a asp-controller="Pagos" asp-action="Index" class="nav-item flex items-center gap-3 px-3 py-3 rounded-xl font-headline text-xs font-semibold uppercase tracking-wider cursor-pointer" data-section="payments">
                         <span class="material-symbols-outlined text-[22px]" style="font-variation-settings:'wght' 300">payments</span> Pagos
