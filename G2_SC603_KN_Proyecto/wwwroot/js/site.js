@@ -132,6 +132,73 @@ function filterReportMembresia() {
     });
 }
 
+
+//===================== VISTA: REPORTE INDEX =====================
+function limpiarFiltros() {
+    //document.getElementById("reportStartDate").value = "";
+    //document.getElementById("reportEndDate").value = "";
+
+    //document.querySelectorAll("select").forEach(s => s.selectedIndex = 0);
+    document.getElementById("filtroReporte").reset();
+
+}
+function filtrarReporte() {
+
+    const fechaInicio = document.getElementById("reportStartDate").value;
+    const fechaFin = document.getElementById("reportEndDate").value;
+    const membresia = document.getElementById("membresiaFilter").value;
+    const metodo = document.getElementById("metodoFilter").value;
+
+    const filas = document.querySelectorAll("#reportTableBody tr");
+
+    filas.forEach(fila => {
+
+        const fecha = fila.cells[1].textContent.trim();
+        const plan = fila.cells[2].textContent.trim();
+        const metodoPago = fila.cells[3].textContent.trim();
+
+        let mostrar = true;
+
+        // Filtro por membresía
+        if (membresia !== "" && membresia !== "Todos" && plan !== membresia) {
+            mostrar = false;
+        }
+
+        // Filtro por método
+        if (metodo !== "" && metodo !== "Todos" && metodoPago !== metodo) {
+            mostrar = false;
+        }
+
+        // Filtro por fecha inicio
+        if (fechaInicio !== "") {
+
+            const fechaFila = new Date(fecha);
+            const inicio = new Date(fechaInicio);
+
+            if (fechaFila < inicio) {
+                mostrar = false;
+            }
+
+        }
+
+        // Filtro por fecha fin
+        if (fechaFin !== "") {
+
+            const fechaFila = new Date(fecha);
+            const fin = new Date(fechaFin);
+
+            if (fechaFila > fin) {
+                mostrar = false;
+            }
+
+        }
+
+        fila.style.display = mostrar ? "" : "none";
+
+    });
+
+}
+
 //===================== VISTA: REPORTE CLIENTES =====================
 function filterReportCliente() {
     const statusValue = document.getElementById("reporteStatusFilter").value;

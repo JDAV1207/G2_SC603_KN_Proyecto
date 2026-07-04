@@ -1,4 +1,5 @@
-﻿@{
+﻿@model G2_SC603_KN_Proyecto.Models.DashboardViewModel
+@{
     Layout = "_Layout";
 }
 <div id="page-dashboard" class="section-page active p-6 lg:p-8 space-y-8">
@@ -14,44 +15,28 @@
                 <span class="text-on-surface-variant text-[10px] uppercase tracking-wider font-bold">Clientes Activos</span>
                 <span class="material-symbols-outlined text-primary-container text-[20px]" style="font-variation-settings:'wght' 300">group</span>
             </div>
-            <div class="font-headline text-4xl font-black tracking-tighter text-on-surface" id="metricClients">147</div>
-            <div class="mt-2 flex items-center gap-1">
-                <span class="material-symbols-outlined text-tertiary-fixed text-[14px]" style="font-variation-settings:'wght' 300">trending_up</span>
-                <span class="text-tertiary-fixed text-xs font-semibold">+8 esta semana</span>
-            </div>
+            <div class="font-headline text-4xl font-black tracking-tighter text-on-surface" id="metricClients">@Model.ClientesActivos</div>
         </div>
         <div class="metric-card wine bg-surface-container rounded-2xl p-5 shadow-[0_20px_40px_rgba(0,0,0,0.3)]">
             <div class="flex justify-between items-start mb-3">
                 <span class="text-on-surface-variant text-[10px] uppercase tracking-wider font-bold">Ingresos del Mes</span>
                 <span class="material-symbols-outlined text-tertiary-fixed-dim text-[20px]" style="font-variation-settings:'wght' 300">monetization_on</span>
             </div>
-            <div class="font-headline text-4xl font-black tracking-tighter text-on-surface">₡486K</div>
-            <div class="mt-2 flex items-center gap-1">
-                <span class="material-symbols-outlined text-tertiary-fixed text-[14px]" style="font-variation-settings:'wght' 300">trending_up</span>
-                <span class="text-tertiary-fixed text-xs font-semibold">+12% vs mes anterior</span>
-            </div>
+            <div class="font-headline text-4xl font-black tracking-tighter text-on-surface">₡@Model.IngresosMes.ToString("N0")</div>
         </div>
         <div class="metric-card bg-surface-container rounded-2xl p-5 shadow-[0_20px_40px_rgba(0,0,0,0.3)]">
             <div class="flex justify-between items-start mb-3">
                 <span class="text-on-surface-variant text-[10px] uppercase tracking-wider font-bold">Asistencia Diaria</span>
                 <span class="material-symbols-outlined text-secondary text-[20px]" style="font-variation-settings:'wght' 300">directions_run</span>
             </div>
-            <div class="font-headline text-4xl font-black tracking-tighter text-on-surface">34</div>
-            <div class="mt-2 flex items-center gap-1">
-                <span class="material-symbols-outlined text-tertiary-fixed text-[14px]">show_chart</span>
-                <span class="text-on-surface-variant text-xs">Promedio diario</span>
-            </div>
+            <div class="font-headline text-4xl font-black tracking-tighter text-on-surface">@Model.AsistenciaHoy</div>
         </div>
         <div class="metric-card bg-surface-container rounded-2xl p-5 shadow-[0_20px_40px_rgba(0,0,0,0.3)]">
             <div class="flex justify-between items-start mb-3">
                 <span class="text-on-surface-variant text-[10px] uppercase tracking-wider font-bold">Vencen en 7 días</span>
                 <span class="material-symbols-outlined text-[#fbbf24] text-[20px]" style="font-variation-settings:'wght' 300">warning</span>
             </div>
-            <div class="font-headline text-4xl font-black tracking-tighter text-[#fbbf24]">12</div>
-            <div class="mt-2 flex items-center gap-1">
-                <span class="material-symbols-outlined text-[#fbbf24] text-[14px]">schedule</span>
-                <span class="text-[#fbbf24] text-xs font-semibold">Requieren renovación</span>
-            </div>
+            <div class="font-headline text-4xl font-black tracking-tighter text-[#fbbf24]">@Model.MembresiasPorVencer</div>
         </div>
     </div>
 
@@ -64,14 +49,22 @@
                     <p class="text-on-surface-variant text-xs">Últimos 7 días</p>
                 </div>
                 <div class="flex gap-1">
-                    <button class="tab-btn active" onclick="this.parentNode.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active')">Semana</button>
-                    <button class="tab-btn" onclick="this.parentNode.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active')">Mes</button>
+                    <button id="btnSemana"
+                            class="tab-btn active"
+                            onclick="cambiarPeriodo('semana')">
+                        Semana
+                    </button>
+
+                    <button id="btnMes"
+                            class="tab-btn"
+                            onclick="cambiarPeriodo('mes')">
+                        Mes
+                    </button>
                 </div>
             </div>
-            <div class="flex items-end justify-between gap-2 h-40" id="attendanceChart">
-                <!-- Bars rendered by JS -->
+            <div style="height:300px">
+                <canvas id="attendanceChart"></canvas>
             </div>
-            <div class="flex justify-between mt-2 text-[10px] text-outline uppercase tracking-wider" id="chartLabels"></div>
         </div>
 
         <!-- Expiring Soon -->
@@ -80,8 +73,29 @@
                 <h3 class="font-headline font-bold text-base">Alertas de Vencimiento</h3>
                 <span class="material-symbols-outlined text-[#fbbf24] text-[20px]">warning_amber</span>
             </div>
-            <div class="space-y-3" id="expiringList">
-                <!-- rendered by JS -->
+            <div>
+
+                @foreach (var item in Model.Vencimientos)
+                {
+                    <div class="border-b pb-3 mb-3">
+                        <strong>@item.Cliente</strong>
+
+                        <br />
+
+                        Vence:
+
+                        @item.FechaFin.ToString("dd/MM/yyyy")
+
+                        <br />
+
+                        <small>
+
+                            @item.DiasRestantes días restantes
+
+                        </small>
+                    </div>
+                }
+
             </div>
         </div>
     </div>
@@ -90,7 +104,20 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div class="bg-surface-container rounded-2xl p-6 shadow-[0_20px_40px_rgba(0,0,0,0.3)]">
             <h3 class="font-headline font-bold text-base mb-5">Top Clientes — Asistencia</h3>
-            <div class="space-y-3" id="rankingList"></div>
+            <div>
+
+                @foreach (var item in Model.RankingClientes)
+                {
+                    <div class="flex justify-between border-b py-2">
+
+                        <span>@item.Cliente</span>
+
+                        <span>@item.Asistencias asistencias</span>
+
+                    </div>
+                }
+
+            </div>
         </div>
         <div class="bg-surface-container rounded-2xl p-6 shadow-[0_20px_40px_rgba(0,0,0,0.3)]">
             <div class="flex items-center justify-between mb-5">
@@ -98,10 +125,35 @@
                 <span class="text-on-surface-variant text-xs" id="todayDate"></span>
             </div>
             <div class="text-center py-4">
-                <div class="font-headline text-5xl font-black tracking-tighter text-primary-container" id="todayIncome">₡38,500</div>
+                <div class="font-headline text-5xl font-black tracking-tighter text-primary-container" id="todayIncome">₡@Model.IngresosHoy.ToString("N0")</div>
                 <p class="text-on-surface-variant text-xs mt-2">Total cobrado hoy</p>
             </div>
-            <div class="mt-4 space-y-2" id="todayPaymentsList"></div>
+            <div class="mt-4 space-y-2" id="todayPaymentsList">
+
+                    @foreach (var pago in Model.PagosHoy)
+                    {
+                        <div class="flex justify-between border-b py-2">
+
+                            <span>@pago.Cliente</span>
+
+                            <span>₡@pago.Monto.ToString("N0")</span>
+
+                            <span>@pago.Metodo</span>
+
+                        </div>
+                    }
+            </div>
         </div>
     </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const asistenciaSemana =
+    @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.AsistenciaSemanal));
+
+    const asistenciaMes =
+    @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.AsistenciaMensual));
+
+</script>
+
+<script src="~/js/graficos.js" asp-append-version="true"></script>

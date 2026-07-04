@@ -11,45 +11,49 @@
         <p class="text-on-surface-variant text-xs mt-1">RMGM-DASH-007 al RMGM-DASH-009</p>
     </div>
 
+    <form asp-action="Index" method="get" id="filtroReporte">
     <!-- Filters -->
     <div class="bg-surface-container rounded-2xl p-5 mb-6 shadow-[0_20px_40px_rgba(0,0,0,0.3)]">
         <h3 class="font-headline font-semibold text-sm mb-4 text-on-surface-variant uppercase tracking-wider">Filtros del Reporte</h3>
         <div class="flex flex-wrap gap-4 items-end">
             <div class="flex-1 min-w-36">
                 <label class="label-float">Fecha inicio</label>
-                <input type="date" class="input-field text-sm py-2.5" id="reportStartDate" />
+                    <input name="reportStartDate" type="date" class="input-field text-sm py-2.5" id="reportStartDate" onchange="filtrarReporte()" />
             </div>
             <div class="flex-1 min-w-36">
                 <label class="label-float">Fecha fin</label>
-                <input type="date" class="input-field text-sm py-2.5" id="reportEndDate" />
+                    <input name="reportEndDate" type="date" class="input-field text-sm py-2.5" id="reportEndDate" onchange="filtrarReporte()" />
             </div>
             <div class="flex-1 min-w-36">
                 <label class="label-float">Tipo de membresía</label>
-                <select class="input-field text-sm py-2.5">
-                    <option value="">Todos</option>
+                    <select name="membresiaFilter" class="input-field text-sm py-2.5" id="membresiaFilter" onchange="filtrarReporte()">
+                        <option value="">--Seleccione Una Opción--</option>
+                        <option value="Todos">Todos</option>
                     @foreach (var listamembresias in ViewBag.Membresias as List<G2_SC603_KN_Proyecto.Models.Membresium>)
                     {
-                        <option value="@listamembresias.IdMembresia">@listamembresias.Nombre - @listamembresias.Precio.ToString("N2")</option>
+                        <option value="@listamembresias.Nombre">@listamembresias.Nombre - @listamembresias.Precio.ToString("N2")</option>
                     }
                 </select>
             </div>
             <div class="flex-1 min-w-36">
                 <label class="label-float">Método de pago</label>
-                <select class="input-field text-sm py-2.5">
-                    <option value="">Todos</option>
+                    <select name="metodoFilter" class="input-field text-sm py-2.5" id="metodoFilter" onchange="filtrarReporte()">
+                        <option value="">--Seleccione Una Opción--</option>
+                        <option value="Todos">Todos</option>
                     <option>Efectivo</option>
                     <option>SINPE</option>
                     <option>Tarjeta</option>
                 </select>
             </div>
             <div class="flex gap-2">
-                <button class="btn-primary py-2.5 text-sm">
+                    <button class="btn-primary py-2.5 text-sm">
                     <span class="material-symbols-outlined text-[16px]">filter_list</span> Generar
                 </button>
-                <button class="btn-secondary py-2.5 text-sm">Limpiar</button>
+                    <button class="btn-secondary py-2.5 text-sm" onclick="limpiarFiltros()">Limpiar</button>
             </div>
         </div>
     </div>
+    </form>
 
     <!-- Report Summary Cards -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

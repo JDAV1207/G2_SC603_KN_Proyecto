@@ -9,7 +9,10 @@ namespace G2_SC603_KN_Proyecto.Controllers
     public class ReportesController : Controller
     {
         // GET: NotificacionesController
-        public ActionResult Index(string estado = "")
+        public ActionResult Index(DateOnly? reportStartDate,
+                DateOnly? reportEndDate,
+                string? membresiaFilter,
+                string? metodoFilter)
         {
             var listamembresias = _context.Membresia.ToList();
 
@@ -38,12 +41,32 @@ namespace G2_SC603_KN_Proyecto.Controllers
                                FechaPago = p.FechaPago,
                                Monto = p.Monto
                            });
-
-            if (!string.IsNullOrEmpty(estado))
+            if (!string.IsNullOrEmpty(membresiaFilter) || !string.IsNullOrEmpty(metodoFilter) ||
+                reportStartDate.HasValue || reportEndDate.HasValue)
             {
-                if (estado != "Todos")
+                if (!string.IsNullOrEmpty(membresiaFilter))
                 {
-                    reporte = reporte.Where(x => x.Estado == estado);
+                    if (membresiaFilter != "Todos")
+                    {
+                        reporte = reporte.Where(x => x.Membresia == membresiaFilter);
+                    }
+                }
+                if (!string.IsNullOrEmpty(metodoFilter))
+                {
+                    if (metodoFilter != "Todos")
+                    {
+                        reporte = reporte.Where(x => x.MetodoPago == metodoFilter);
+                    }
+
+                }
+                if (reportStartDate.HasValue)
+                {
+                    reporte = reporte.Where(x => x.FechaPago >= reportStartDate.Value);
+                }
+
+                if (reportEndDate.HasValue)
+                {
+                    reporte = reporte.Where(x => x.FechaPago <= reportEndDate.Value);
                 }
                 using (var workbook = new XLWorkbook())
                 {
@@ -99,9 +122,13 @@ namespace G2_SC603_KN_Proyecto.Controllers
 
                 }
             }
+            else
+            {
 
-            return View(reporte.ToList());
-        }
+                return View(reporte.ToList());
+            }
+            
+        } 
 
         private readonly DbOrionFitContext _context;
 
