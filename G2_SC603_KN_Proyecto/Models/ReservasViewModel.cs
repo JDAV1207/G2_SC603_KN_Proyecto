@@ -25,6 +25,8 @@ public class ClaseDisponibleVM
     public int Cupo { get; set; }
     public int Reservados { get; set; }
     public bool YaReservada { get; set; }
+    public string? Wod { get; set; }
+    public string? WodImagen { get; set; }
 
     public int Disponibles => Cupo - Reservados;
 }

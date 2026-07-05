@@ -8,6 +8,7 @@ public class WodResumen
     public int IdRutina { get; set; }
     public string Nombre { get; set; } = null!;
     public string? Objetivo { get; set; }
+    public string? Imagen { get; set; }
     public int IdEntrenador { get; set; }
     public string NombreEntrenador { get; set; } = null!;
     public int? IdRutinaEjercicio { get; set; }

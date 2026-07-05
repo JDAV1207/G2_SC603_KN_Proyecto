@@ -25,6 +25,12 @@
             <h2 class="font-headline text-3xl font-bold tracking-tight">Reservas de Horarios</h2>
             <p class="text-on-surface-variant text-xs mt-1">RMGM-RES-001 al RMGM-RES-005</p>
         </div>
+        @if (Model.EsAdmin)
+        {
+            <button class="btn-primary py-2.5 text-sm" onclick="openModal('classModal')">
+                <span class="material-symbols-outlined text-[18px]">add</span> Nueva Clase
+            </button>
+        }
     </div>
 
     <!-- Horarios disponibles -->
@@ -42,6 +48,11 @@
                 bool lleno = clase.Disponibles <= 0;
 
                 <div class="reservation-slot @(clase.YaReservada ? "mine" : lleno ? "full" : "available")">
+                    @if (!string.IsNullOrEmpty(clase.WodImagen))
+                    {
+                        <img src="~/@clase.WodImagen" alt="@clase.Wod"
+                             class="w-full rounded-xl mb-3" style="height:140px; object-fit:cover; object-position:center; background:#2a2929;" />
+                    }
                     <div class="flex items-start justify-between mb-2">
                         <div>
                             <p class="font-headline font-bold text-sm">@clase.Nombre</p>
@@ -68,6 +79,13 @@
                         <span class="text-outline text-xs">@clase.Entrenador</span>
                     </div>
 
+                    @if (!string.IsNullOrEmpty(clase.Wod))
+                    {
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="material-symbols-outlined text-outline text-[14px]" style="font-variation-settings:'wght' 300">fitness_center</span>
+                            <span class="text-outline text-xs">Entrenamiento: @clase.Wod</span>
+                        </div>
+                    }
                     <div class="flex items-center gap-2 mb-3">
                         <span class="text-outline text-xs">Cupos: @clase.Reservados / @clase.Cupo</span>
                         <span class="text-outline text-xs">· @clase.Disponibles disponibles</span>
@@ -108,7 +126,7 @@
                                 @if (Model.AsistenciaHoy)
                                 {
                                     <button type="button" class="btn-secondary text-xs py-1.5 px-3" disabled style="opacity:0.5; cursor:default;">
-                                        <span class="material-symbols-outlined text-[14px]">check_circle</span> Asistencia registrada
+                                        <span class="material-symbols-outlined text-[14px]">check_circle</span> Asistencia de hoy registrada
                                     </button>
                                 }
                                 else
@@ -116,7 +134,7 @@
                                     <form asp-controller="Reservas" asp-action="RegistrarAsistencia" method="post">
                                         <input type="hidden" name="idReserva" value="@reserva.IdReserva" />
                                         <button type="submit" class="btn-primary text-xs py-1.5 px-3">
-                                            <span class="material-symbols-outlined text-[14px]">how_to_reg</span> Registrar asistencia
+                                            <span class="material-symbols-outlined text-[14px]">how_to_reg</span> Registrar asistencia de hoy
                                         </button>
                                     </form>
                                 }
@@ -178,3 +196,54 @@
         </div>
     }
 </div>
+
+@if (Model.EsAdmin)
+{
+<div class="modal-overlay" id="classModal">
+    <div class="modal-box">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="font-headline font-bold text-xl">Nueva Clase</h3>
+            <button onclick="closeModal('classModal')" class="btn-icon"><span class="material-symbols-outlined">close</span></button>
+        </div>
+        <form asp-controller="Reservas" asp-action="CrearClase" method="post" class="space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="col-span-2">
+                    <label class="label-float">Nombre de la Clase *</label>
+                    <input type="text" name="nombre" class="input-field" placeholder="Ej: CrossFit Intensivo" required />
+                </div>
+                <div>
+                    <label class="label-float">Horario *</label>
+                    <input type="datetime-local" name="horario" class="input-field" required />
+                </div>
+                <div>
+                    <label class="label-float">Cupo Maximo *</label>
+                    <input type="number" name="cupo" class="input-field" placeholder="15" min="1" max="50" required />
+                </div>
+                <div>
+                    <label class="label-float">Entrenador *</label>
+                    <select name="idEntrenador" class="input-field" required>
+                        @foreach (var entrenador in ViewBag.Entrenadores as List<G2_SC603_KN_Proyecto.Models.Entrenador> ?? new List<G2_SC603_KN_Proyecto.Models.Entrenador>())
+                        {
+                            <option value="@entrenador.IdEntrenador">@entrenador.Nombre</option>
+                        }
+                    </select>
+                </div>
+                <div>
+                    <label class="label-float">WOD (opcional)</label>
+                    <select name="idRutina" class="input-field">
+                        <option value="">Sin entrenamiento asignado</option>
+                        @foreach (var wod in ViewBag.Wods as List<G2_SC603_KN_Proyecto.Models.Rutina> ?? new List<G2_SC603_KN_Proyecto.Models.Rutina>())
+                        {
+                            <option value="@wod.IdRutina">@wod.Nombre</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="flex gap-3 pt-2 justify-end">
+                <button type="button" class="btn-secondary" onclick="closeModal('classModal')">Cancelar</button>
+                <button type="submit" class="btn-primary"><span class="material-symbols-outlined text-[16px]">save</span> Crear Clase</button>
+            </div>
+        </form>
+    </div>
+</div>
+}

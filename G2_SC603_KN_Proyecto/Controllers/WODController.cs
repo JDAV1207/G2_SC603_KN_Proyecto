@@ -1,4 +1,4 @@
-using G2_SC603_KN_Proyecto.Models;
+﻿using G2_SC603_KN_Proyecto.Models;
 using G2_SC603_KN_Proyecto.Filters;
 using G2_SC603_KN_Proyecto.Models.ViewModels.Wod;
 using G2_SC603_KN_Proyecto.Services.Wod;
@@ -12,15 +12,18 @@ namespace G2_SC603_KN_Proyecto.Controllers
         private readonly DbOrionFitContext _context;
         private readonly IWodConsultaService _wodConsultaService;
         private readonly IWodEliminacionService _wodEliminacionService;
+        private readonly IWebHostEnvironment _env;
 
         public WODController(
             DbOrionFitContext context,
             IWodConsultaService wodConsultaService,
-            IWodEliminacionService wodEliminacionService)
+            IWodEliminacionService wodEliminacionService,
+            IWebHostEnvironment env)
         {
             _context = context;
             _wodConsultaService = wodConsultaService;
             _wodEliminacionService = wodEliminacionService;
+            _env = env;
         }
 
         #region Mostrar WODs
@@ -43,7 +46,7 @@ namespace G2_SC603_KN_Proyecto.Controllers
 
         #region Agregar WOD
         [HttpPost]
-        public async Task<IActionResult> AgregarWOD(string nombre, string objetivo, string ejerciciosJson)
+        public async Task<IActionResult> AgregarWOD(string nombre, string objetivo, string ejerciciosJson, IFormFile? imagen)
         {
             try
             {
@@ -73,11 +76,14 @@ namespace G2_SC603_KN_Proyecto.Controllers
                         ?? throw new Exception("No hay entrenadores registrados en el sistema.");
                 }
 
+                string? rutaImagen = await GuardarImagenWod(imagen);
+
                 await _context.Database.ExecuteSqlRawAsync(
-                    "CALL sp_AgregarWOD({0}, {1}, {2}, {3})",
+                    "CALL sp_AgregarWOD({0}, {1}, {2}, {3}, {4})",
                     entrenador.IdEntrenador,
                     nombre,
                     objetivo ?? string.Empty,
+                    rutaImagen,
                     ejerciciosJson
                 );
 
@@ -91,6 +97,35 @@ namespace G2_SC603_KN_Proyecto.Controllers
             return RedirectToAction("MostrarWOD");
         }
         #endregion
+
+        private async Task<string?> GuardarImagenWod(IFormFile? imagen)
+        {
+            if (imagen == null || imagen.Length == 0)
+            {
+                return null;
+            }
+
+            string extension = Path.GetExtension(imagen.FileName).ToLower();
+            string[] permitidas = { ".jpg", ".jpeg", ".png", ".webp" };
+
+            if (!permitidas.Contains(extension))
+            {
+                throw new Exception("La imagen debe ser jpg, png o webp.");
+            }
+
+            string carpeta = Path.Combine(_env.WebRootPath, "img", "wods");
+            Directory.CreateDirectory(carpeta);
+
+            string nombreArchivo = Guid.NewGuid().ToString("N") + extension;
+            string rutaFisica = Path.Combine(carpeta, nombreArchivo);
+
+            using (var stream = new FileStream(rutaFisica, FileMode.Create))
+            {
+                await imagen.CopyToAsync(stream);
+            }
+
+            return "img/wods/" + nombreArchivo;
+        }
 
         #region Editar WOD
         // DTO interno para deserializar el JSON de ejercicios

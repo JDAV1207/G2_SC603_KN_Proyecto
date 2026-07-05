@@ -79,6 +79,11 @@
                     </div>
 
 
+                    @if (!string.IsNullOrEmpty(primeraFila.Imagen))
+                    {
+                        <img src="~/@primeraFila.Imagen" alt="@primeraFila.Nombre"
+                             class="w-full rounded-xl mb-3" style="height:180px; object-fit:cover; object-position:center; background:#2a2929;" />
+                    }
                     @if (!string.IsNullOrEmpty(primeraFila.Objetivo))
                     {
                         <p class="text-on-surface-variant text-xs mb-4">@primeraFila.Objetivo</p>
@@ -113,7 +118,7 @@
             </button>
         </div>
 
-        <form asp-action="AgregarWOD" method="post" id="wodForm" class="space-y-4" onsubmit="prepareWodSubmit(event)">
+        <form asp-action="AgregarWOD" method="post" enctype="multipart/form-data" id="wodForm" class="space-y-4" onsubmit="prepareWodSubmit(event)">
 
             <div class="grid grid-cols-2 gap-4">
                 <div class="col-span-2">
@@ -125,6 +130,11 @@
                     <label class="label-float">Objetivo / Notas del Coach</label>
                     <textarea name="objetivo" id="wodObjetivo" class="input-field" rows="2"
                               placeholder="Instrucciones, tips, observaciones..."></textarea>
+                </div>
+                <div class="col-span-2">
+                    <label class="label-float">Imagen del entrenamiento (opcional)</label>
+                    <input type="file" name="imagen" id="wodImagen" class="input-field"
+                           accept=".jpg,.jpeg,.png,.webp" />
                 </div>
             </div>
 

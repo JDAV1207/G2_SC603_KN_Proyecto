@@ -159,6 +159,7 @@ public partial class DbOrionFitContext : DbContext
                 .HasColumnType("datetime")
                 .HasColumnName("horario");
             entity.Property(e => e.IdEntrenador).HasColumnName("id_entrenador");
+            entity.Property(e => e.IdRutina).HasColumnName("id_rutina");
             entity.Property(e => e.Nombre)
                 .HasMaxLength(100)
                 .HasColumnName("nombre");
@@ -167,6 +168,10 @@ public partial class DbOrionFitContext : DbContext
                 .HasForeignKey(d => d.IdEntrenador)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Clase_Entrenador");
+
+            entity.HasOne(d => d.IdRutinaNavigation).WithMany(p => p.Clases)
+                .HasForeignKey(d => d.IdRutina)
+                .HasConstraintName("FK_Clase_Rutina");
         });
 
         modelBuilder.Entity<Cliente>(entity =>
@@ -498,6 +503,9 @@ public partial class DbOrionFitContext : DbContext
             entity.Property(e => e.Objetivo)
                 .HasMaxLength(255)
                 .HasColumnName("objetivo");
+            entity.Property(e => e.Imagen)
+                .HasMaxLength(255)
+                .HasColumnName("imagen");
 
             entity.HasOne(d => d.IdEntrenadorNavigation).WithMany(p => p.Rutinas)
                 .HasForeignKey(d => d.IdEntrenador)

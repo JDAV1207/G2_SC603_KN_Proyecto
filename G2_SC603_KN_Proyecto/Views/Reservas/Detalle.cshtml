@@ -35,6 +35,13 @@
             <span class="text-on-surface-variant text-sm">Entrenador</span>
             <span class="font-semibold text-sm">@Model.IdClaseNavigation.IdEntrenadorNavigation.Nombre</span>
         </div>
+        @if (Model.IdClaseNavigation.IdRutinaNavigation != null)
+        {
+            <div class="flex justify-between border-b pb-3">
+                <span class="text-on-surface-variant text-sm">Entrenamiento (WOD)</span>
+                <span class="font-semibold text-sm">@Model.IdClaseNavigation.IdRutinaNavigation.Nombre</span>
+            </div>
+        }
         <div class="flex justify-between border-b pb-3">
             <span class="text-on-surface-variant text-sm">Fecha de reserva</span>
             <span class="font-semibold text-sm">@Model.FechaReserva.ToString("dd/MM/yyyy")</span>

@@ -13,6 +13,10 @@ public partial class Rutina
 
     public string? Objetivo { get; set; }
 
+    public string? Imagen { get; set; }
+
+    public virtual ICollection<Clase> Clases { get; set; } = new List<Clase>();
+
     public virtual ICollection<ClienteRutina> ClienteRutinas { get; set; } = new List<ClienteRutina>();
 
     public virtual Entrenador IdEntrenadorNavigation { get; set; } = null!;

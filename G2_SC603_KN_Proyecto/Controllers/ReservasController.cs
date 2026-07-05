@@ -37,6 +37,8 @@ namespace G2_SC603_KN_Proyecto.Controllers
                     Horario = c.Horario,
                     Cupo = c.Cupo,
                     Reservados = c.Reservas.Count(r => r.Estado == "Activa"),
+                    Wod = c.IdRutinaNavigation != null ? c.IdRutinaNavigation.Nombre : null,
+                    WodImagen = c.IdRutinaNavigation != null ? c.IdRutinaNavigation.Imagen : null,
                     YaReservada = idCliente != 0 && c.Reservas.Any(r =>
                         r.IdCliente == idCliente &&
                         r.Estado == "Activa")
@@ -60,6 +62,9 @@ namespace G2_SC603_KN_Proyecto.Controllers
 
             if (model.EsAdmin)
             {
+                ViewBag.Entrenadores = await _context.Entrenadors.ToListAsync();
+                ViewBag.Wods = await _context.Rutinas.OrderByDescending(r => r.IdRutina).ToListAsync();
+
                 model.TodasReservas = await _context.Reservas
                     .Include(r => r.IdClaseNavigation)
                     .Include(r => r.IdClienteNavigation)
@@ -68,6 +73,47 @@ namespace G2_SC603_KN_Proyecto.Controllers
             }
 
             return View(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CrearClase(string nombre, DateTime horario, int cupo, int idEntrenador, int? idRutina)
+        {
+            string rol = HttpContext.Session.GetString("Rol") ?? string.Empty;
+
+            if (rol != "ADMIN" && rol != "RECEPTION")
+            {
+                TempData["ErrorMessage"] = "No tiene permisos para crear clases.";
+                return RedirectToAction("Index");
+            }
+
+            if (string.IsNullOrWhiteSpace(nombre) || cupo <= 0)
+            {
+                TempData["ErrorMessage"] = "El nombre y un cupo mayor a cero son obligatorios.";
+                return RedirectToAction("Index");
+            }
+
+            bool entrenadorExiste = await _context.Entrenadors.AnyAsync(e => e.IdEntrenador == idEntrenador);
+
+            if (!entrenadorExiste)
+            {
+                TempData["ErrorMessage"] = "El entrenador seleccionado no existe.";
+                return RedirectToAction("Index");
+            }
+
+            Clase clase = new Clase
+            {
+                Nombre = nombre.Trim(),
+                Horario = horario,
+                Cupo = cupo,
+                IdEntrenador = idEntrenador,
+                IdRutina = idRutina
+            };
+
+            _context.Clases.Add(clase);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Clase creada correctamente.";
+            return RedirectToAction("Index");
         }
 
         [HttpPost]
@@ -220,6 +266,8 @@ namespace G2_SC603_KN_Proyecto.Controllers
                 .Include(r => r.IdClienteNavigation)
                 .Include(r => r.IdClaseNavigation)
                     .ThenInclude(c => c.IdEntrenadorNavigation)
+                .Include(r => r.IdClaseNavigation)
+                    .ThenInclude(c => c.IdRutinaNavigation)
                 .FirstOrDefaultAsync(r => r.IdReserva == id);
 
             if (reserva == null)
