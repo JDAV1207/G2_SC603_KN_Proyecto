@@ -270,3 +270,12 @@ CREATE TABLE historial_membresias (
         REFERENCES Cliente(id_cliente),
         CONSTRAINT FK_Historial_Membresia FOREIGN KEY (id_membresia) REFERENCES Membresia(id_membresia)
 );
+/* =========================================================
+   TABLA DE ANUNCIOS
+========================================================= */
+CREATE TABLE Anuncio (
+    id_anuncio INT AUTO_INCREMENT PRIMARY KEY,
+    titulo VARCHAR(100),
+    mensaje VARCHAR(255),
+    fecha DATETIME
+);
